@@ -1,50 +1,55 @@
 # Server Guides (Project Zomboid B42)
 
-Mod que permite ao **dono do servidor** publicar **guias e regras** que os
-jogadores leem dentro do jogo, numa janela com menu lateral e texto formatado.
-O conteúdo fica numa pasta no servidor e é **transmitido ao vivo**: edite (pela
-**própria UI in-game**, sendo staff, ou direto nos arquivos), o jogador reabre a
-janela e vê a versão nova.
+A mod that lets the **server owner** publish **guides and rules** that players
+read inside the game, in a window with a side menu and formatted text. The
+content lives in a folder on the server and is **streamed live**: edit it (from
+the **in-game UI** as staff, or directly in the files) and players see the new
+version the next time they open the window.
 
-> Para o **jogador comum** é um visualizador **somente-consulta**: abre, lê e fecha.
-> Não há "Li e concordo" nem qualquer bloqueio. **Staff** (admin/moderator/overseer/gm,
-> e o host em SP/coop) ganha botões de **edição in-game** — veja
-> [Edição in-game (staff)](#edição-in-game-staff). Ver `SPEC.md` para o design completo.
+> For a **regular player** it's a **read-only** viewer: open, read, close. There
+> is no "I have read and agree" gate or any blocking. **Staff**
+> (admin/moderator/overseer/gm, plus the host in SP/co-op) gets **in-game editing**
+> buttons — see [In-game editing (staff)](#in-game-editing-staff). See `SPEC.md`
+> for the full design.
 
-## Instalação do conteúdo (admin)
+## Content setup (admin)
 
-1. Ative o mod **ServerGuides** no servidor (e nos clientes, em MP — via Workshop).
-2. **Na primeira execução**, se a pasta ainda não existir, o mod cria
-   automaticamente
+1. Enable the **ServerGuides** mod on the server (and on clients in MP — via the
+   Workshop).
+2. **On first run**, if the folder doesn't exist yet, the mod automatically
+   creates
    ```
    ~/Zomboid/Lua/ServerGuides/
    ```
-   (No Windows: `C:\Users\<você>\Zomboid\Lua\ServerGuides\`) e a preenche com os
-   arquivos-modelo de [`ServerGuides/common/texts/`](ServerGuides/common/texts).
-   O auto-seed só roda na máquina que hospeda (servidor dedicado, host de coop ou
-   SP) e **nunca sobrescreve** conteúdo existente — só age se `index.txt` faltar.
-3. Edite os `.txt` à vontade. Salve sempre em **UTF-8**.
+   (on Windows: `C:\Users\<you>\Zomboid\Lua\ServerGuides\`) and fills it with the
+   template files from [`ServerGuides/common/texts/`](ServerGuides/common/texts).
+   The auto-seed only runs on the hosting machine (dedicated server, co-op host or
+   SP) and **never overwrites** existing content — it only acts if `index.txt` is
+   missing.
+3. Edit the `.txt` files freely. Always save as **UTF-8**.
 
-A leitura é feita **só pelo servidor**; o cliente nunca lê o disco — recebe apenas
-texto pela rede. Em singleplayer/host local, a mesma máquina faz os dois papéis.
+Reading is done **only by the server**; the client never reads the disk — it only
+receives text over the network. In singleplayer / local host, the same machine
+plays both roles.
 
-## Estrutura no servidor
+## Server-side layout
 
 ```
 ~/Zomboid/Lua/ServerGuides/
-  index.txt            # manifesto da árvore de menus (obrigatório)
-  rules_general.txt    # conteúdo (tags do ISRichTextPanel)
+  index.txt            # menu tree manifest (required)
+  rules_general.txt    # content (ISRichTextPanel tags)
   rules_pvp.txt
   guide_start.txt
   guide_bases.txt
 ```
 
-> Os arquivos-modelo já vêm em inglês; troque o conteúdo pelo idioma do seu servidor.
+> The template files ship in English; replace the content with your server's
+> language.
 
 ### `index.txt`
 
 ```ini
-# [Section] = categoria de topo ; "Title = file.txt" = página clicável
+# [Section] = top-level category ; "Title = file.txt" = clickable page
 [Rules]
 General = rules_general.txt
 PvP     = rules_pvp.txt
@@ -54,115 +59,135 @@ Quick start = guide_start.txt
 Base map    = guide_bases.txt
 ```
 
-- A ordem é preservada; o título é livre (independe do nome do arquivo).
-- Arquivo ausente é omitido (com aviso no log), sem quebrar a UI.
-- A seção **[Rules]** (ou **[Regras]**, ou qualquer `[*Nome]`) é tratada como
-  **regras**: mudar o conteúdo dela faz a janela **abrir sozinha 1x** na próxima
-  entrada do jogador (controle por versão/hash no ModData do personagem).
+- Order is preserved; the title is free (independent of the file name).
+- A missing file is omitted (with a log warning), without breaking the UI.
+- The **[Rules]** section (or **[Regras]**, or any `[*Name]`) is treated as
+  **rules**: changing its content makes the window **open by itself once** on the
+  player's next join (tracked by version/hash in the character's ModData).
 
-### Formato do conteúdo (tags nativas do `ISRichTextPanel`)
+### Content format (native `ISRichTextPanel` tags)
 
-| Tag | Efeito |
+| Tag | Effect |
 |---|---|
-| `<LINE>` | quebra de linha |
-| `<SIZE:small\|medium\|large>` | tamanho da fonte |
-| `<RGB:r,g,b>` | cor do texto (0..1) |
-| `<PUSHRGB:r,g,b>` / `<POPRGB>` | empilha/desempilha cor |
-| `<RED>` `<GREEN>` `<ORANGE>` | cores rápidas |
-| `<CENTRE>` `<LEFT>` `<RIGHT>` | alinhamento |
-| `<INDENT:n>` / `<SETX:n>` | recuo / posição X |
-| `<SPACE>` | espaço |
-| `<IMAGE:nome>` / `<IMAGECENTRE:nome,w,h>` | imagem (ver abaixo) |
+| `<LINE>` | line break |
+| `<SIZE:small\|medium\|large>` | font size |
+| `<RGB:r,g,b>` | text color (0..1) |
+| `<PUSHRGB:r,g,b>` / `<POPRGB>` | push/pop color |
+| `<RED>` `<GREEN>` `<ORANGE>` | quick colors |
+| `<CENTRE>` `<LEFT>` `<RIGHT>` | alignment |
+| `<INDENT:n>` / `<SETX:n>` | indent / X position |
+| `<SPACE>` | space |
+| `<IMAGE:name>` / `<IMAGECENTRE:name,w,h>` | image (see below) |
 
-## Como o jogador abre
+## How players open it
 
-- **Item "Guias do Servidor"** no menu ESC in-game (junto de Continuar/Sair).
-- **Auto-open** das regras 1x sempre que o admin alterar o conteúdo das regras.
+- **"Server Guides" item** in the in-game pause menu (Esc), next to Continue/Quit.
+- **Auto-open** of the rules once whenever the admin changes the rules content.
 
-## Edição in-game (staff)
+## In-game editing (staff)
 
-Quem tem acesso de **staff** (`admin`, `moderator`, `overseer`, `gm` — e o host em
-SP/coop) vê dois botões extras na janela:
+Anyone with a **staff** access level (`admin`, `moderator`, `overseer`, `gm` — plus
+the host in SP/co-op) sees two extra buttons in the window:
 
-- **Editar** — entra em modo de edição na página aberta: um campo de texto com o
-  markup cru (as tags do `ISRichTextPanel`). Ao **Salvar**, o conteúdo sobe pela rede
-  (fatiado em chunks) e o **servidor grava** o `.txt`; a mudança aparece ao vivo para
-  todos (a janela rebusca a página).
-- **Editar menu** — abre um editor do `index.txt`: criar / renomear / remover
-  categorias e páginas, marcar uma categoria como **Regras**, e reordenar. Ao salvar,
-  o servidor reescreve o `index.txt` e cria o `.txt` inicial de cada página nova.
+- **Edit** — enters edit mode on the open page: a text field with the raw markup
+  (the `ISRichTextPanel` tags). On **Save**, the content is uploaded over the
+  network (sliced into chunks) and the **server writes** the `.txt`; the change
+  goes live for everyone (the window re-fetches the page).
+- **Edit menu** — opens an editor for `index.txt`: create / rename / remove
+  categories and pages, mark a category as **Rules**, and reorder. On save, the
+  server rewrites `index.txt` and creates the starting `.txt` for each new page.
 
-Detalhes e limites:
+Details and limits:
 
-- **Quem pode editar é configurável** em *Opções de Sandbox → Server Guides*, no
-  campo **"Níveis de acesso que podem editar"**: uma lista separada por `;`
-  (padrão `admin;moderator;overseer;gm`). Deixe vazio para não permitir ninguém. O
-  **host** (SP/coop) sempre pode editar — é o dono dos arquivos.
-- **Servidor é autoritativo**: o botão é só cosmético; toda gravação é revalidada no
-  servidor (nível de acesso vs. opção de sandbox, caminho seguro, limite de 256 KB).
-  Um cliente sem permissão não consegue gravar mesmo forjando comandos.
-- **Remover** uma página/categoria só a tira do menu — o arquivo `.txt`
-  **permanece** no disco (nada é apagado por engano; dá para re-adicionar depois).
-- Editar o menu **reescreve** o `index.txt` com um cabeçalho gerado; **comentários e
-  formatação manual não são preservados**.
-- O nome do arquivo de uma página nova é derivado do título (e tornado único); o
-  título continua independente do nome do arquivo.
-- Edição **otimista**: se outro staff alterar a mesma página/menu enquanto você edita,
-  o salvamento é recusado ("o conteúdo mudou no servidor") — reabra e refaça.
+- **Who can edit is configurable** in *Sandbox Options → Server Guides*, in the
+  **"Access levels allowed to edit"** field: a `;`-separated list (default
+  `admin;moderator;overseer;gm`). Leave empty to allow none. The **host** (SP/co-op)
+  can always edit — they own the files.
+- **Server is authoritative**: the button is cosmetic; every write is re-validated
+  on the server (access level vs. the sandbox option, safe path, 256 KB limit). A
+  client without permission can't write even by forging commands.
+- **Removing** a page/category only drops it from the menu — the `.txt` file
+  **stays** on disk (nothing is deleted by accident; you can re-add it later).
+- Editing the menu **rewrites** `index.txt` with a generated header; **manual
+  comments and formatting are not preserved**.
+- A new page's file name is derived from the title (and made unique); the title
+  stays independent of the file name.
+- **Optimistic editing**: if another staff member changes the same page/menu while
+  you're editing, the save is rejected ("content changed on the server") — reopen
+  and redo.
 
-## Imagens
+## Images
 
-O texto é servido ao vivo, mas a **imagem não**: ela precisa estar empacotada na
-pasta `media/` de um mod carregado (registrada no mapa de texturas e sincronizada
-ao cliente) e é referenciada por **nome**, com o prefixo `media/`.
+The text is served live, but the **image is not**: it must be packed into the
+`media/` folder of a loaded mod (registered in the texture map and synced to the
+client) and is referenced by **name**, with the `media/` prefix.
 
-Este mod já traz uma imagem de demonstração em
+This mod ships a demo image in
 [`ServerGuides/common/media/ui/guias/poster.png`](ServerGuides/common/media/ui/guias),
-usada no guia `guide_images.txt` via `<IMAGECENTRE:media/ui/guias/poster.png,256,256>`.
+used by the `guide_images.txt` guide via `<IMAGECENTRE:media/ui/guias/poster.png,256,256>`.
 
-Para usar **suas** imagens sem editar este mod, empacote-as num mod separado e
-referencie por nome — veja o mod de exemplo
-[`ServerGuidesImagesExample`](../ServerGuidesImagesExample). Em multiplayer o mod
-com as imagens precisa estar no **Workshop** (mods locais não sincronizam ao cliente).
+To use **your own** images without editing this mod, pack them into a separate mod
+and reference them by name — see the example mod
+[`ServerGuidesImagesExample`](../ServerGuidesImagesExample). In multiplayer the mod
+with the images must be on the **Workshop** (local mods don't sync to the client).
 
-## Limites
+## Limits
 
-- Tamanho máximo por arquivo: **256 KB** (recusado acima disso).
-- Conteúdo grande é fatiado em chunks pela rede e remontado no cliente
-  automaticamente.
+- Maximum size per file: **256 KB** (rejected above that).
+- Large content is sliced into chunks over the network and reassembled on the
+  client automatically.
 
-## Idiomas
+## Languages
 
-Inglês e Português (Brasil) — strings da UI e das opções de sandbox.
+English and Português (Brasil) — UI strings and sandbox option strings.
 
-## Arquivos do mod
+## Mod files
 
-Layout multi-versão do B42: cada pasta-base (`42/` da versão e `common/`
-compartilhada) tem seu `media/`. O jogo lista o mod por causa do `42/mod.info` e
-carrega o `media/` de **ambas** (`common/` + `42/`), com a versão sobrepondo a
-comum (`ZomboidFileSystem`).
+B42 multi-version layout: each base folder (`42/` for the version and `common/`
+for the shared part) has its own `media/`. The game lists the mod because of
+`42/mod.info` and loads the `media/` of **both** (`common/` + `42/`), with the
+version overriding the common one (`ZomboidFileSystem`).
 
 ```
-ServerGuides/                      # pasta do mod (vai em ~/Zomboid/mods/)
+ServerGuides/                      # mod folder (goes in ~/Zomboid/mods/)
   42/
     mod.info
     media/
-      sandbox-options.txt          # opção "níveis que podem editar" (page Server Guides)
+      sandbox-options.txt          # "access levels allowed to edit" option (page Server Guides)
       lua/
        shared/
-        ServerGuides_Shared.lua    # constantes, isStaff/sandbox, validação de caminho, hash, parser/serializer do index
-        Translate/EN/*, Translate/PTBR/*   # strings da UI (IG_UI.json) e das opções de sandbox (Sandbox.json)
+        ServerGuides_Shared.lua    # constants, isStaff/sandbox, path validation, hash, index parser/serializer
+        Translate/EN/*, Translate/PTBR/*   # UI strings (IG_UI.json) and sandbox option strings (Sandbox.json)
        server/
-        ServerGuides_Server.lua    # OnClientCommand: index/página, rulesVersion, validação, chunking, edição (savePage/editIndex)
-        ServerGuides_Seed.lua      # 1ª execução: cria Lua/ServerGuides/ e grava os modelos de texts/
+        ServerGuides_Server.lua    # OnClientCommand: index/page, rulesVersion, validation, chunking, editing (savePage/editIndex)
+        ServerGuides_Seed.lua      # first run: creates Lua/ServerGuides/ and writes the texts/ templates
        client/
-        ServerGuides_UI.lua        # janela + modo de edição inline (ISCollapsableWindow + listbox + rich text)
-        ServerGuides_IndexEditor.lua # editor do menu/index (CRUD de categorias e páginas)
-        ServerGuides_Client.lua    # OnServerCommand, cache/remontagem, auto-open, senders de edição
-        ServerGuides_ESCMenu.lua   # item no menu ESC in-game (estilo nativo)
+        ServerGuides_UI.lua        # window + inline edit mode (ISCollapsableWindow + listbox + rich text)
+        ServerGuides_IndexEditor.lua # menu/index editor (CRUD of categories and pages)
+        ServerGuides_Client.lua    # OnServerCommand, cache/reassembly, auto-open, edit senders
+        ServerGuides_ESCMenu.lua   # item in the in-game pause menu (native style)
   common/
-    media/ui/guias/poster.png      # imagem de demonstração (carregada como media/ui/guias/poster.png)
-    texts/                         # conteúdo-modelo p/ copiar em ~/Zomboid/Lua/ServerGuides/
-README.md / SPEC.md                # docs (na raiz do repositório, fora do mod)
-STEAM_DESC.bbcode                  # descrição da Oficina (BBCode), fora do mod
+    media/ui/guias/poster.png      # demo image (loaded as media/ui/guias/poster.png)
+    texts/                         # template content to copy into ~/Zomboid/Lua/ServerGuides/
+README.md / SPEC.md                # docs (at the repo root, outside the mod)
+STEAM_DESC.bbcode                  # Workshop description (BBCode), outside the mod
 ```
+
+## Permissions for Modders
+
+**Ask for permission.**
+
+This mod may **not** be included in modpacks, collections distributed as a single
+download, or any form of redistribution without the express permission of the
+original creator. Extensions and patches are also subject to this restriction.
+Having received permission, credit must be given to the original creator both
+within the mod files and wherever the mod is published online.
+
+## Copyright
+
+**Copyright 2026 Leandro Ferreira.** This item is not authorized for posting on
+Steam, except under the Steam account named leozimmelo.
+
+All rights reserved. This mod may not be reuploaded, mirrored, or included in
+modpacks or collections distributed as a single download without the express
+written permission of the original creator.
