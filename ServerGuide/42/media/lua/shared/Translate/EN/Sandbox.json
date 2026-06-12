@@ -1,0 +1,6 @@
+{
+    "Sandbox_ServerGuide": "Server Guide",
+
+    "Sandbox_ServerGuide_EditAccessLevels": "Access levels allowed to edit",
+    "Sandbox_ServerGuide_EditAccessLevels_tooltip": "Which access levels may edit guides and the menu in-game, separated by \";\" (e.g. admin;moderator;overseer;gm). Leave empty to allow none. The host (SP/co-op) can always edit. Default: admin;moderator;overseer;gm"
+}

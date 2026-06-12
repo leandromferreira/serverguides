@@ -1,7 +1,7 @@
-# index.txt - menu tree manifest for ServerGuides
+# index.txt - menu tree manifest for ServerGuide
 #
 # Copy this whole folder (common/texts/) to:
-#   ~/Zomboid/Lua/ServerGuides/   (on the machine that HOSTS the game/server)
+#   ~/Zomboid/Lua/ServerGuide/   (on the machine that HOSTS the game/server)
 # (On first run the mod also creates and seeds this folder automatically.)
 #
 # Format rules:

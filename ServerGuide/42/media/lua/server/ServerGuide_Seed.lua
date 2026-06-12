@@ -1,6 +1,6 @@
 --[[
-    ServerGuides_Seed.lua
-    Auto-seed: the first time (if ~/Zomboid/Lua/ServerGuides/index.txt does NOT
+    ServerGuide_Seed.lua
+    Auto-seed: the first time (if ~/Zomboid/Lua/ServerGuide/index.txt does NOT
     exist yet), creates the folder and writes the template files bundled in the
     mod (the mod's "texts/" folder). Idempotent: never overwrites existing content.
 
@@ -13,14 +13,14 @@
       listFilesInModDirectory(modId, "texts")     -> names of the template files
 ]]
 
-ServerGuidesSeed = ServerGuidesSeed or {}
+ServerGuideSeed = ServerGuideSeed or {}
 
 -- Subfolder inside the mod that holds the template files.
 local MOD_TEXTS_DIR = "texts"
 
 --- Reads the whole content of a mod template file as a string (lines joined by \n).
 local function readModFile(name)
-    local reader = getModFileReader(ServerGuides.MODULE, MOD_TEXTS_DIR .. "/" .. name, false)
+    local reader = getModFileReader(ServerGuide.MODULE, MOD_TEXTS_DIR .. "/" .. name, false)
     if not reader then return nil end
     local parts = {}
     local line = reader:readLine()
@@ -33,18 +33,18 @@ local function readModFile(name)
 end
 
 --- Seeds if needed. Returns true if it seeded, false if it skipped.
-function ServerGuidesSeed.run()
+function ServerGuideSeed.run()
     -- a pure MP client writes nothing
     if isClient() and not isServer() then return false end
 
     -- content already there? don't touch anything
-    if ServerGuides.luaFileExists(ServerGuides.resolve(ServerGuides.INDEX_FILE)) then
+    if ServerGuide.luaFileExists(ServerGuide.resolve(ServerGuide.INDEX_FILE)) then
         return false
     end
 
-    local names = listFilesInModDirectory(ServerGuides.MODULE, MOD_TEXTS_DIR)
+    local names = listFilesInModDirectory(ServerGuide.MODULE, MOD_TEXTS_DIR)
     if not names or names:size() == 0 then
-        print("[ServerGuides] seed: no template files in the mod's " .. MOD_TEXTS_DIR .. "/")
+        print("[ServerGuide] seed: no template files in the mod's " .. MOD_TEXTS_DIR .. "/")
         return false
     end
 
@@ -54,34 +54,34 @@ function ServerGuidesSeed.run()
     for i = 0, names:size() - 1 do
         local name = names:get(i)
         -- only validate the name's safety (one level, no subfolders)
-        local ok = ServerGuides.isSafeRelativePath(name)
+        local ok = ServerGuide.isSafeRelativePath(name)
         if ok and not seen[name] then
             seen[name] = true
             local content = readModFile(name)
             if content then
-                local writer = getFileWriter(ServerGuides.resolve(name), true, false)
+                local writer = getFileWriter(ServerGuide.resolve(name), true, false)
                 if writer then
                     writer:write(content)
                     writer:close()
                     count = count + 1
                 else
-                    print("[ServerGuides] seed: failed to write " .. name)
+                    print("[ServerGuide] seed: failed to write " .. name)
                 end
             end
         end
     end
 
-    print(string.format("[ServerGuides] folder Lua/%s/ created with %d template file(s).",
-        ServerGuides.FOLDER, count))
+    print(string.format("[ServerGuide] folder Lua/%s/ created with %d template file(s).",
+        ServerGuide.FOLDER, count))
     return true
 end
 
 -- Dedicated server / coop host.
 Events.OnServerStarted.Add(function()
-    ServerGuidesSeed.run()
+    ServerGuideSeed.run()
 end)
 
 -- Singleplayer / local host (OnServerStarted does not fire in SP).
 Events.OnGameStart.Add(function()
-    ServerGuidesSeed.run()
+    ServerGuideSeed.run()
 end)

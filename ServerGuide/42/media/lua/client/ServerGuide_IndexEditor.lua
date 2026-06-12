@@ -1,10 +1,10 @@
 --[[
-    ServerGuides_IndexEditor.lua
+    ServerGuide_IndexEditor.lua
     Staff-only editor for the menu (index.txt): create / rename / remove
     categories and pages, and mark a category as "rules".
 
     Works on a local working COPY of the tree; nothing is sent until "Save",
-    which ships the whole tree to the server (ServerGuidesClient.editIndex). The
+    which ships the whole tree to the server (ServerGuideClient.editIndex). The
     server sanitises it, rewrites index.txt and creates a starter .txt for any
     new page. Removing here only drops entries from the menu -- the .txt files
     stay on disk (see SPEC / README).
@@ -15,7 +15,7 @@
 
 if isServer() then return end
 
-ServerGuidesIndexEditor = ISCollapsableWindow:derive("ServerGuidesIndexEditor")
+ServerGuideIndexEditor = ISCollapsableWindow:derive("ServerGuideIndexEditor")
 
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.NewSmall)
 local SP = 8
@@ -65,7 +65,7 @@ end
 -- Construction
 ------------------------------------------------------------------------
 
-function ServerGuidesIndexEditor:createChildren()
+function ServerGuideIndexEditor:createChildren()
     ISCollapsableWindow.createChildren(self)
 
     local top = self:titleBarHeight()
@@ -81,7 +81,7 @@ function ServerGuidesIndexEditor:createChildren()
     self.listBox.drawBorder = true
     self.listBox.backgroundColor = { r = 0, g = 0, b = 0, a = 0.5 }
     self.listBox.font = UIFont.NewSmall
-    self.listBox.doDrawItem = ServerGuidesIndexEditor.doDrawItem
+    self.listBox.doDrawItem = ServerGuideIndexEditor.doDrawItem
     self:addChild(self.listBox)
 
     -- Row 1: structural actions
@@ -96,22 +96,22 @@ function ServerGuidesIndexEditor:createChildren()
         return b
     end
 
-    self.btnAddCat  = mkBtn(getText("IGUI_ServerGuides_AddCategory"), ServerGuidesIndexEditor.onAddCategory, x, y1); x = x + BTN_W + SP
-    self.btnAddPage = mkBtn(getText("IGUI_ServerGuides_AddPage"),     ServerGuidesIndexEditor.onAddPage,     x, y1); x = x + BTN_W + SP
-    self.btnRename  = mkBtn(getText("IGUI_ServerGuides_Rename"),      ServerGuidesIndexEditor.onRename,      x, y1); x = x + BTN_W + SP
-    self.btnRules   = mkBtn(getText("IGUI_ServerGuides_IsRules"),     ServerGuidesIndexEditor.onToggleRules, x, y1); x = x + BTN_W + SP
-    self.btnRemove  = mkBtn(getText("IGUI_ServerGuides_Remove"),      ServerGuidesIndexEditor.onRemove,      x, y1)
+    self.btnAddCat  = mkBtn(getText("IGUI_ServerGuide_AddCategory"), ServerGuideIndexEditor.onAddCategory, x, y1); x = x + BTN_W + SP
+    self.btnAddPage = mkBtn(getText("IGUI_ServerGuide_AddPage"),     ServerGuideIndexEditor.onAddPage,     x, y1); x = x + BTN_W + SP
+    self.btnRename  = mkBtn(getText("IGUI_ServerGuide_Rename"),      ServerGuideIndexEditor.onRename,      x, y1); x = x + BTN_W + SP
+    self.btnRules   = mkBtn(getText("IGUI_ServerGuide_IsRules"),     ServerGuideIndexEditor.onToggleRules, x, y1); x = x + BTN_W + SP
+    self.btnRemove  = mkBtn(getText("IGUI_ServerGuide_Remove"),      ServerGuideIndexEditor.onRemove,      x, y1)
 
     -- Row 2: order + save/close
     local y2 = y1 + BTN_H + SP
     x = SP
-    self.btnUp   = mkBtn(getText("IGUI_ServerGuides_MoveUp"),   ServerGuidesIndexEditor.onMoveUp,   x, y2); x = x + BTN_W + SP
-    self.btnDown = mkBtn(getText("IGUI_ServerGuides_MoveDown"), ServerGuidesIndexEditor.onMoveDown, x, y2)
+    self.btnUp   = mkBtn(getText("IGUI_ServerGuide_MoveUp"),   ServerGuideIndexEditor.onMoveUp,   x, y2); x = x + BTN_W + SP
+    self.btnDown = mkBtn(getText("IGUI_ServerGuide_MoveDown"), ServerGuideIndexEditor.onMoveDown, x, y2)
 
-    self.btnClose = mkBtn(getText("UI_btn_close"), ServerGuidesIndexEditor.onCloseBtn,
+    self.btnClose = mkBtn(getText("UI_btn_close"), ServerGuideIndexEditor.onCloseBtn,
         self.width - BTN_W - SP, y2)
     self.btnClose:enableCancelColor()
-    self.btnSave = mkBtn(getText("IGUI_ServerGuides_Save"), ServerGuidesIndexEditor.onSave,
+    self.btnSave = mkBtn(getText("IGUI_ServerGuide_Save"), ServerGuideIndexEditor.onSave,
         self.btnClose:getX() - BTN_W - SP, y2)
 
     self.statusLabel = ISLabel:new(SP, self.height - SP - FONT_HGT_SMALL, FONT_HGT_SMALL, "",
@@ -128,7 +128,7 @@ end
 ------------------------------------------------------------------------
 
 --- Rebuilds the list rows from the working tree, preserving the selected line.
-function ServerGuidesIndexEditor:rebuildList()
+function ServerGuideIndexEditor:rebuildList()
     local prev = self.listBox.selected
     self.listBox:clear()
     for ci, cat in ipairs(self.work) do
@@ -144,7 +144,7 @@ function ServerGuidesIndexEditor:rebuildList()
     end
 end
 
-function ServerGuidesIndexEditor:doDrawItem(y, item, alt)
+function ServerGuideIndexEditor:doDrawItem(y, item, alt)
     local data = item.item
     if self.selected == item.index then
         self:drawRect(0, y, self:getWidth(), self.itemheight - 1, 0.3, 0.7, 0.35, 0.15)
@@ -158,12 +158,12 @@ function ServerGuidesIndexEditor:doDrawItem(y, item, alt)
 end
 
 --- Returns the selected row's data ({kind, ci, ii}) or nil.
-function ServerGuidesIndexEditor:selData()
+function ServerGuideIndexEditor:selData()
     local sel = self.listBox.items[self.listBox.selected]
     return sel and sel.item or nil
 end
 
-function ServerGuidesIndexEditor:setStatus(text, isError)
+function ServerGuideIndexEditor:setStatus(text, isError)
     self.statusLabel.name = text or ""
     if isError then
         self.statusLabel.r, self.statusLabel.g, self.statusLabel.b = 1, 0.4, 0.4
@@ -172,7 +172,7 @@ function ServerGuidesIndexEditor:setStatus(text, isError)
     end
 end
 
-function ServerGuidesIndexEditor:markDirty()
+function ServerGuideIndexEditor:markDirty()
     self.dirty = true
 end
 
@@ -181,20 +181,20 @@ end
 ------------------------------------------------------------------------
 
 --- Opens a one-field modal. `onText` is called with (editor, text) on OK.
-function ServerGuidesIndexEditor:prompt(titleText, defaultText, onText)
+function ServerGuideIndexEditor:prompt(titleText, defaultText, onText)
     self._onText = onText
     local w, h = 320, 150
     local x = getCore():getScreenWidth() / 2 - w / 2
     local y = getCore():getScreenHeight() / 2 - h / 2
     local modal = ISTextBox:new(x, y, w, h, titleText, defaultText or "", self,
-        ServerGuidesIndexEditor.onPromptClick, nil)
+        ServerGuideIndexEditor.onPromptClick, nil)
     modal:initialise()
     modal:addToUIManager()
 end
 
-function ServerGuidesIndexEditor.onPromptClick(editor, button)
+function ServerGuideIndexEditor.onPromptClick(editor, button)
     if button.internal == "OK" and editor._onText then
-        local text = ServerGuides.trim(button.parent.entry:getText() or "")
+        local text = ServerGuide.trim(button.parent.entry:getText() or "")
         if text ~= "" then editor._onText(editor, text) end
     end
     editor._onText = nil
@@ -204,19 +204,19 @@ end
 -- Operations (mutate the working copy only)
 ------------------------------------------------------------------------
 
-function ServerGuidesIndexEditor:onAddCategory()
-    self:prompt(getText("IGUI_ServerGuides_NewCategory"), "", function(ed, name)
+function ServerGuideIndexEditor:onAddCategory()
+    self:prompt(getText("IGUI_ServerGuide_NewCategory"), "", function(ed, name)
         table.insert(ed.work, { cat = name, isRules = false, items = {} })
         ed:markDirty(); ed:rebuildList()
         ed.listBox.selected = #ed.listBox.items
     end)
 end
 
-function ServerGuidesIndexEditor:onAddPage()
+function ServerGuideIndexEditor:onAddPage()
     local d = self:selData()
-    if not d then self:setStatus(getText("IGUI_ServerGuides_PickCategory"), true) return end
+    if not d then self:setStatus(getText("IGUI_ServerGuide_PickCategory"), true) return end
     local ci = d.ci
-    self:prompt(getText("IGUI_ServerGuides_NewPageTitle"), "", function(ed, title)
+    self:prompt(getText("IGUI_ServerGuide_NewPageTitle"), "", function(ed, title)
         local cat = ed.work[ci]
         if not cat then return end
         local file = uniqueFileName(ed.work, title)
@@ -225,35 +225,35 @@ function ServerGuidesIndexEditor:onAddPage()
     end)
 end
 
-function ServerGuidesIndexEditor:onRename()
+function ServerGuideIndexEditor:onRename()
     local d = self:selData()
     if not d then return end
     if d.kind == "cat" then
         local cat = self.work[d.ci]
-        self:prompt(getText("IGUI_ServerGuides_RenameCategory"), cat.cat, function(ed, name)
+        self:prompt(getText("IGUI_ServerGuide_RenameCategory"), cat.cat, function(ed, name)
             ed.work[d.ci].cat = name
             ed:markDirty(); ed:rebuildList()
         end)
     else
         local it = self.work[d.ci].items[d.ii]
-        self:prompt(getText("IGUI_ServerGuides_RenamePage"), it.title, function(ed, title)
+        self:prompt(getText("IGUI_ServerGuide_RenamePage"), it.title, function(ed, title)
             ed.work[d.ci].items[d.ii].title = title
             ed:markDirty(); ed:rebuildList()
         end)
     end
 end
 
-function ServerGuidesIndexEditor:onToggleRules()
+function ServerGuideIndexEditor:onToggleRules()
     local d = self:selData()
     if not d or d.kind ~= "cat" then
-        self:setStatus(getText("IGUI_ServerGuides_PickCategory"), true)
+        self:setStatus(getText("IGUI_ServerGuide_PickCategory"), true)
         return
     end
     self.work[d.ci].isRules = not self.work[d.ci].isRules
     self:markDirty(); self:rebuildList()
 end
 
-function ServerGuidesIndexEditor:onRemove()
+function ServerGuideIndexEditor:onRemove()
     local d = self:selData()
     if not d then return end
     if d.kind == "cat" then
@@ -265,7 +265,7 @@ function ServerGuidesIndexEditor:onRemove()
 end
 
 --- Moves the selected category, or page within its category, by `delta`.
-function ServerGuidesIndexEditor:move(delta)
+function ServerGuideIndexEditor:move(delta)
     local d = self:selData()
     if not d then return end
     if d.kind == "cat" then
@@ -284,79 +284,79 @@ function ServerGuidesIndexEditor:move(delta)
     end
 end
 
-function ServerGuidesIndexEditor:onMoveUp()   self:move(-1) end
-function ServerGuidesIndexEditor:onMoveDown() self:move(1)  end
+function ServerGuideIndexEditor:onMoveUp()   self:move(-1) end
+function ServerGuideIndexEditor:onMoveDown() self:move(1)  end
 
 ------------------------------------------------------------------------
 -- Save / close / server feedback
 ------------------------------------------------------------------------
 
-function ServerGuidesIndexEditor:onSave()
-    ServerGuidesClient.editIndex(self.work)
-    self:setStatus(getText("IGUI_ServerGuides_Saving"))
+function ServerGuideIndexEditor:onSave()
+    ServerGuideClient.editIndex(self.work)
+    self:setStatus(getText("IGUI_ServerGuide_Saving"))
 end
 
 --- Reloads the working copy from the current client tree, unless the user has
 --- unsaved local changes (then we keep them, to avoid clobbering their work).
-function ServerGuidesIndexEditor:refreshFromTree(force)
+function ServerGuideIndexEditor:refreshFromTree(force)
     if self.dirty and not force then return end
-    self.work = copyTree(ServerGuidesClient and ServerGuidesClient.tree or {})
+    self.work = copyTree(ServerGuideClient and ServerGuideClient.tree or {})
     self.dirty = false
     self:rebuildList()
 end
 
-function ServerGuidesIndexEditor:onEditResult(args)
+function ServerGuideIndexEditor:onEditResult(args)
     if args.op ~= "editIndex" then return end
     if args.ok then
         self.dirty = false
-        self:setStatus(getText("IGUI_ServerGuides_Saved"))
+        self:setStatus(getText("IGUI_ServerGuide_Saved"))
         -- the index re-broadcast will call refreshFromTree() with the new tree
     else
         local r = args.reason
-        if r == "not authorized" then r = getText("IGUI_ServerGuides_NotAuthorized")
-        elseif r == "stale" then r = getText("IGUI_ServerGuides_Stale")
-        else r = getText("IGUI_ServerGuides_SaveError", tostring(r or "?")) end
+        if r == "not authorized" then r = getText("IGUI_ServerGuide_NotAuthorized")
+        elseif r == "stale" then r = getText("IGUI_ServerGuide_Stale")
+        else r = getText("IGUI_ServerGuide_SaveError", tostring(r or "?")) end
         self:setStatus(r, true)
     end
 end
 
-function ServerGuidesIndexEditor:onCloseBtn()
+function ServerGuideIndexEditor:onCloseBtn()
     self:close()
 end
 
-function ServerGuidesIndexEditor:close()
+function ServerGuideIndexEditor:close()
     if self.parentUI then self.parentUI.indexEditor = nil end
     self:setVisible(false)
     self:removeFromUIManager()
-    ServerGuidesIndexEditor.instance = nil
+    ServerGuideIndexEditor.instance = nil
 end
 
 ------------------------------------------------------------------------
 -- Construction / static open
 ------------------------------------------------------------------------
 
-function ServerGuidesIndexEditor:new()
+function ServerGuideIndexEditor:new()
     local w, h = 480, 460
     local x = getCore():getScreenWidth() / 2 - w / 2
     local y = getCore():getScreenHeight() / 2 - h / 2
     local o = ISCollapsableWindow.new(self, x, y, w, h)
-    o.title = getText("IGUI_ServerGuides_EditIndex")
+    o.title = getText("IGUI_ServerGuide_EditIndex")
     o.resizable = true
     return o
 end
 
 --- Opens the editor (one instance), linked to the parent viewer for refreshes.
-function ServerGuidesIndexEditor.open(parentUI)
-    if not (ServerGuidesClient and ServerGuidesClient.canEdit) then return end
-    if not ServerGuidesIndexEditor.instance then
-        local o = ServerGuidesIndexEditor:new()
+function ServerGuideIndexEditor.open(parentUI)
+    if not (ServerGuideClient and ServerGuideClient.canEdit) then return end
+    if not ServerGuideIndexEditor.instance then
+        local o = ServerGuideIndexEditor:new()
         o.parentUI = parentUI
         o:initialise()
         o:addToUIManager()
-        ServerGuidesIndexEditor.instance = o
+        ServerGuideIndexEditor.instance = o
         if parentUI then parentUI.indexEditor = o end
     end
-    local inst = ServerGuidesIndexEditor.instance
+    local inst = ServerGuideIndexEditor.instance
     inst:setVisible(true)
     inst:bringToTop()
     inst:refreshFromTree()

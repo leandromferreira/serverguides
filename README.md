@@ -1,4 +1,4 @@
-# Server Guides (Project Zomboid B42)
+# Server Guide (Project Zomboid B42)
 
 A mod that lets the **server owner** publish **guides and rules** that players
 read inside the game, in a window with a side menu and formatted text. The
@@ -14,15 +14,15 @@ version the next time they open the window.
 
 ## Content setup (admin)
 
-1. Enable the **ServerGuides** mod on the server (and on clients in MP — via the
+1. Enable the **ServerGuide** mod on the server (and on clients in MP — via the
    Workshop).
 2. **On first run**, if the folder doesn't exist yet, the mod automatically
    creates
    ```
-   ~/Zomboid/Lua/ServerGuides/
+   ~/Zomboid/Lua/ServerGuide/
    ```
-   (on Windows: `C:\Users\<you>\Zomboid\Lua\ServerGuides\`) and fills it with the
-   template files from [`ServerGuides/common/texts/`](ServerGuides/common/texts).
+   (on Windows: `C:\Users\<you>\Zomboid\Lua\ServerGuide\`) and fills it with the
+   template files from [`ServerGuide/common/texts/`](ServerGuide/common/texts).
    The auto-seed only runs on the hosting machine (dedicated server, co-op host or
    SP) and **never overwrites** existing content — it only acts if `index.txt` is
    missing.
@@ -35,7 +35,7 @@ plays both roles.
 ## Server-side layout
 
 ```
-~/Zomboid/Lua/ServerGuides/
+~/Zomboid/Lua/ServerGuide/
   index.txt            # menu tree manifest (required)
   rules_general.txt    # content (ISRichTextPanel tags)
   rules_pvp.txt
@@ -81,7 +81,7 @@ Base map    = guide_bases.txt
 
 ## How players open it
 
-- **"Server Guides" item** in the in-game pause menu (Esc), next to Continue/Quit.
+- **"Server Guide" item** in the in-game pause menu (Esc), next to Continue/Quit.
 - **Auto-open** of the rules once whenever the admin changes the rules content.
 
 ## In-game editing (staff)
@@ -99,7 +99,7 @@ the host in SP/co-op) sees two extra buttons in the window:
 
 Details and limits:
 
-- **Who can edit is configurable** in *Sandbox Options → Server Guides*, in the
+- **Who can edit is configurable** in *Sandbox Options → Server Guide*, in the
   **"Access levels allowed to edit"** field: a `;`-separated list (default
   `admin;moderator;overseer;gm`). Leave empty to allow none. The **host** (SP/co-op)
   can always edit — they own the files.
@@ -123,12 +123,12 @@ The text is served live, but the **image is not**: it must be packed into the
 client) and is referenced by **name**, with the `media/` prefix.
 
 This mod ships a demo image in
-[`ServerGuides/common/media/ui/guias/poster.png`](ServerGuides/common/media/ui/guias),
+[`ServerGuide/common/media/ui/guias/poster.png`](ServerGuide/common/media/ui/guias),
 used by the `guide_images.txt` guide via `<IMAGECENTRE:media/ui/guias/poster.png,256,256>`.
 
 To use **your own** images without editing this mod, pack them into a separate mod
 and reference them by name — see the example mod
-[`ServerGuidesImagesExample`](../ServerGuidesImagesExample). In multiplayer the mod
+[`ServerGuideImagesExample`](../ServerGuideImagesExample). In multiplayer the mod
 with the images must be on the **Workshop** (local mods don't sync to the client).
 
 ## Limits
@@ -149,26 +149,26 @@ for the shared part) has its own `media/`. The game lists the mod because of
 version overriding the common one (`ZomboidFileSystem`).
 
 ```
-ServerGuides/                      # mod folder (goes in ~/Zomboid/mods/)
+ServerGuide/                      # mod folder (goes in ~/Zomboid/mods/)
   42/
     mod.info
     media/
-      sandbox-options.txt          # "access levels allowed to edit" option (page Server Guides)
+      sandbox-options.txt          # "access levels allowed to edit" option (page Server Guide)
       lua/
        shared/
-        ServerGuides_Shared.lua    # constants, isStaff/sandbox, path validation, hash, index parser/serializer
+        ServerGuide_Shared.lua    # constants, isStaff/sandbox, path validation, hash, index parser/serializer
         Translate/EN/*, Translate/PTBR/*   # UI strings (IG_UI.json) and sandbox option strings (Sandbox.json)
        server/
-        ServerGuides_Server.lua    # OnClientCommand: index/page, rulesVersion, validation, chunking, editing (savePage/editIndex)
-        ServerGuides_Seed.lua      # first run: creates Lua/ServerGuides/ and writes the texts/ templates
+        ServerGuide_Server.lua    # OnClientCommand: index/page, rulesVersion, validation, chunking, editing (savePage/editIndex)
+        ServerGuide_Seed.lua      # first run: creates Lua/ServerGuide/ and writes the texts/ templates
        client/
-        ServerGuides_UI.lua        # window + inline edit mode (ISCollapsableWindow + listbox + rich text)
-        ServerGuides_IndexEditor.lua # menu/index editor (CRUD of categories and pages)
-        ServerGuides_Client.lua    # OnServerCommand, cache/reassembly, auto-open, edit senders
-        ServerGuides_ESCMenu.lua   # item in the in-game pause menu (native style)
+        ServerGuide_UI.lua        # window + inline edit mode (ISCollapsableWindow + listbox + rich text)
+        ServerGuide_IndexEditor.lua # menu/index editor (CRUD of categories and pages)
+        ServerGuide_Client.lua    # OnServerCommand, cache/reassembly, auto-open, edit senders
+        ServerGuide_ESCMenu.lua   # item in the in-game pause menu (native style)
   common/
     media/ui/guias/poster.png      # demo image (loaded as media/ui/guias/poster.png)
-    texts/                         # template content to copy into ~/Zomboid/Lua/ServerGuides/
+    texts/                         # template content to copy into ~/Zomboid/Lua/ServerGuide/
 README.md / SPEC.md                # docs (at the repo root, outside the mod)
 STEAM_DESC.bbcode                  # Workshop description (BBCode), outside the mod
 ```

@@ -1,5 +1,5 @@
 --[[
-    ServerGuides_UI.lua
+    ServerGuide_UI.lua
     Read-only viewer window for the server's guides/rules.
     Mirrors the SurvivalGuide pattern:
       - left: ISScrollingListBox with the tree (categories = header,
@@ -7,11 +7,11 @@
       - right: ISRichTextPanel with the content (native tags).
     No acknowledgement: the player opens, reads and closes. (SPEC 8)
 
-    Data state (tree, rules version, page cache) is kept in ServerGuidesClient
-    (ServerGuides_Client.lua). This window only renders.
+    Data state (tree, rules version, page cache) is kept in ServerGuideClient
+    (ServerGuide_Client.lua). This window only renders.
 ]]
 
-ServerGuidesUI = ISCollapsableWindow:derive("ServerGuidesUI")
+ServerGuideUI = ISCollapsableWindow:derive("ServerGuideUI")
 
 local FONT_HGT_SMALL  = getTextManager():getFontHeight(UIFont.NewSmall)
 local FONT_HGT_MEDIUM = getTextManager():getFontHeight(UIFont.NewMedium)
@@ -26,7 +26,7 @@ local BOTTOM_PANEL_HEIGHT = BTN_HEIGHT + UI_BORDER_SPACING * 2
 -- Construction
 ------------------------------------------------------------------------
 
-function ServerGuidesUI:createChildren()
+function ServerGuideUI:createChildren()
     ISCollapsableWindow.createChildren(self)
 
     local top = self:titleBarHeight()
@@ -40,8 +40,8 @@ function ServerGuidesUI:createChildren()
     self.listBox.drawBorder = true
     self.listBox.backgroundColor = { r = 0, g = 0, b = 0, a = 0.5 }
     self.listBox.font = UIFont.NewSmall
-    self.listBox.doDrawItem = ServerGuidesUI.doDrawItem
-    self.listBox:setOnMouseDownFunction(self, ServerGuidesUI.onClickList)
+    self.listBox.doDrawItem = ServerGuideUI.doDrawItem
+    self.listBox:setOnMouseDownFunction(self, ServerGuideUI.onClickList)
     self:addChild(self.listBox)
 
     local scrollbarWid = 13
@@ -62,7 +62,7 @@ function ServerGuidesUI:createChildren()
 
     self.closeButton = ISButton:new(self.width - BTN_WIDTH - UI_BORDER_SPACING,
         btnY, BTN_WIDTH, BTN_HEIGHT,
-        getText("UI_btn_close"), self, ServerGuidesUI.onClose)
+        getText("UI_btn_close"), self, ServerGuideUI.onClose)
     self.closeButton:initialise()
     self.closeButton:instantiate()
     self.closeButton:setAnchorsTBLR(false, true, false, true)
@@ -75,7 +75,7 @@ function ServerGuidesUI:createChildren()
     -- "Edit page": toggles inline edit mode over the content panel.
     self.editButton = ISButton:new(self.closeButton:getX() - BTN_WIDTH - UI_BORDER_SPACING,
         btnY, BTN_WIDTH, BTN_HEIGHT,
-        getText("IGUI_ServerGuides_Edit"), self, ServerGuidesUI.onEditPage)
+        getText("IGUI_ServerGuide_Edit"), self, ServerGuideUI.onEditPage)
     self.editButton:initialise()
     self.editButton:instantiate()
     self.editButton:setAnchorsTBLR(false, true, false, true)
@@ -85,7 +85,7 @@ function ServerGuidesUI:createChildren()
     -- "Edit menu": opens the index editor window.
     self.editMenuButton = ISButton:new(self.editButton:getX() - BTN_WIDTH - UI_BORDER_SPACING,
         btnY, BTN_WIDTH, BTN_HEIGHT,
-        getText("IGUI_ServerGuides_EditIndex"), self, ServerGuidesUI.onEditMenu)
+        getText("IGUI_ServerGuide_EditIndex"), self, ServerGuideUI.onEditMenu)
     self.editMenuButton:initialise()
     self.editMenuButton:instantiate()
     self.editMenuButton:setAnchorsTBLR(false, true, false, true)
@@ -94,7 +94,7 @@ function ServerGuidesUI:createChildren()
 
     -- Save / Cancel: shown only while in edit mode (same slots as edit/close).
     self.saveButton = ISButton:new(self.editButton:getX(), btnY, BTN_WIDTH, BTN_HEIGHT,
-        getText("IGUI_ServerGuides_Save"), self, ServerGuidesUI.onSaveEdit)
+        getText("IGUI_ServerGuide_Save"), self, ServerGuideUI.onSaveEdit)
     self.saveButton:initialise()
     self.saveButton:instantiate()
     self.saveButton:setAnchorsTBLR(false, true, false, true)
@@ -103,7 +103,7 @@ function ServerGuidesUI:createChildren()
     self:addChild(self.saveButton)
 
     self.cancelButton = ISButton:new(self.closeButton:getX(), btnY, BTN_WIDTH, BTN_HEIGHT,
-        getText("IGUI_ServerGuides_Cancel"), self, ServerGuidesUI.onCancelEdit)
+        getText("IGUI_ServerGuide_Cancel"), self, ServerGuideUI.onCancelEdit)
     self.cancelButton:initialise()
     self.cancelButton:instantiate()
     self.cancelButton:setAnchorsTBLR(false, true, false, true)
@@ -124,7 +124,7 @@ function ServerGuidesUI:createChildren()
     -- a generous positive cap: -1 is treated as "no extra lines" and blocks Enter
     self.editor:setMaxLines(100000)
     -- raise the default length cap so long pages aren't truncated
-    self.editor:setMaxTextLength(ServerGuides.MAX_FILE_BYTES)
+    self.editor:setMaxTextLength(ServerGuide.MAX_FILE_BYTES)
     self.editor:setFont(UIFont.NewSmall)
     self.editor:setAnchorsTBLR(true, true, true, true)
     self.editor:setVisible(false)
@@ -144,9 +144,9 @@ end
 
 --- Shows the edit controls only for staff, and only the right set for the
 --- current mode (viewing vs editing).
-function ServerGuidesUI:updateEditControls()
+function ServerGuideUI:updateEditControls()
     -- server-authoritative: the client can't reliably read its own access level
-    local canEdit = ServerGuidesClient and ServerGuidesClient.canEdit == true
+    local canEdit = ServerGuideClient and ServerGuideClient.canEdit == true
     local editing = self.editing == true
 
     self.editButton:setVisible(canEdit and not editing)
@@ -162,10 +162,10 @@ end
 -- Side list
 ------------------------------------------------------------------------
 
---- (Re)fills the list from the current tree (ServerGuidesClient.tree).
-function ServerGuidesUI:refreshList()
+--- (Re)fills the list from the current tree (ServerGuideClient.tree).
+function ServerGuideUI:refreshList()
     self.listBox:clear()
-    local tree = ServerGuidesClient and ServerGuidesClient.tree or {}
+    local tree = ServerGuideClient and ServerGuideClient.tree or {}
     for _, cat in ipairs(tree) do
         -- category header (not clickable)
         self.listBox:addItem(cat.cat, { header = true, title = cat.cat })
@@ -180,7 +180,7 @@ function ServerGuidesUI:refreshList()
 end
 
 --- Draws each row (highlighted header, indented item).
-function ServerGuidesUI:doDrawItem(y, item, alt)
+function ServerGuideUI:doDrawItem(y, item, alt)
     local data = item.item
     if self.selected == item.index and not data.header then
         self:drawRect(0, y, self:getWidth(), self.itemheight - 1, 0.3, 0.7, 0.35, 0.15)
@@ -193,7 +193,7 @@ function ServerGuidesUI:doDrawItem(y, item, alt)
     return y + self.itemheight
 end
 
-function ServerGuidesUI:onClickList()
+function ServerGuideUI:onClickList()
     local sel = self.listBox.items[self.listBox.selected]
     if not sel then return end
     local data = sel.item
@@ -210,16 +210,16 @@ end
 
 --- Shows a file's page. Uses the client cache; if it hasn't arrived yet,
 --- requests it from the server and shows a placeholder until the content returns.
-function ServerGuidesUI:showPage(file, title)
+function ServerGuideUI:showPage(file, title)
     self.currentFile = file
-    local cached = ServerGuidesClient and ServerGuidesClient.pageCache[file]
+    local cached = ServerGuideClient and ServerGuideClient.pageCache[file]
     if cached then
         self.body.text = cached
     else
         self.body.text = " <CENTRE> <SIZE:medium> " .. (title or "") .. " <LINE><LINE> " ..
-            getText("IGUI_ServerGuides_Loading")
-        if ServerGuidesClient then
-            ServerGuidesClient.requestPage(file)
+            getText("IGUI_ServerGuide_Loading")
+        if ServerGuideClient then
+            ServerGuideClient.requestPage(file)
         end
     end
     self.body:paginate()
@@ -228,7 +228,7 @@ end
 
 --- Called by the client when a file finishes arriving; if it is the file
 --- currently displayed, refreshes the panel.
-function ServerGuidesUI:onPageReady(file, content)
+function ServerGuideUI:onPageReady(file, content)
     if self.currentFile == file then
         self.body.text = content
         self.body:paginate()
@@ -245,7 +245,7 @@ end
 -- Editing (staff only)
 ------------------------------------------------------------------------
 
-function ServerGuidesUI:setStatus(text, isError)
+function ServerGuideUI:setStatus(text, isError)
     self.statusLabel.name = text or ""
     if isError then
         self.statusLabel.r, self.statusLabel.g, self.statusLabel.b = 1, 0.4, 0.4
@@ -255,26 +255,26 @@ function ServerGuidesUI:setStatus(text, isError)
 end
 
 --- "Edit" button: enter inline edit mode for the current page.
-function ServerGuidesUI:onEditPage()
-    if not (ServerGuidesClient and ServerGuidesClient.canEdit) then return end
+function ServerGuideUI:onEditPage()
+    if not (ServerGuideClient and ServerGuideClient.canEdit) then return end
     if not self.currentFile then
-        self:setStatus(getText("IGUI_ServerGuides_PickPage"), true)
+        self:setStatus(getText("IGUI_ServerGuide_PickPage"), true)
         return
     end
-    local cached = ServerGuidesClient and ServerGuidesClient.pageCache[self.currentFile]
+    local cached = ServerGuideClient and ServerGuideClient.pageCache[self.currentFile]
     if not cached then
         -- not loaded yet: request it and edit once it arrives
         self.pendingEdit = true
-        self:setStatus(getText("IGUI_ServerGuides_Loading"))
-        if ServerGuidesClient then ServerGuidesClient.requestPage(self.currentFile) end
+        self:setStatus(getText("IGUI_ServerGuide_Loading"))
+        if ServerGuideClient then ServerGuideClient.requestPage(self.currentFile) end
         return
     end
     self:enterEditMode()
 end
 
-function ServerGuidesUI:enterEditMode()
-    local content = (ServerGuidesClient and ServerGuidesClient.pageCache[self.currentFile]) or ""
-    self.editBaseHash = ServerGuides.hashString(content)
+function ServerGuideUI:enterEditMode()
+    local content = (ServerGuideClient and ServerGuideClient.pageCache[self.currentFile]) or ""
+    self.editBaseHash = ServerGuide.hashString(content)
     self.editor:setText(content)
     self.editing = true
     self:setStatus("")
@@ -283,18 +283,18 @@ function ServerGuidesUI:enterEditMode()
 end
 
 --- "Save": upload the edited content; the server validates and writes.
-function ServerGuidesUI:onSaveEdit()
+function ServerGuideUI:onSaveEdit()
     local content = self.editor:getText() or ""
-    if #content > ServerGuides.MAX_FILE_BYTES then
-        self:setStatus(getText("IGUI_ServerGuides_TooLarge"), true)
+    if #content > ServerGuide.MAX_FILE_BYTES then
+        self:setStatus(getText("IGUI_ServerGuide_TooLarge"), true)
         return
     end
-    ServerGuidesClient.savePage(self.currentFile, content, self.editBaseHash)
-    self:setStatus(getText("IGUI_ServerGuides_Saving"))
+    ServerGuideClient.savePage(self.currentFile, content, self.editBaseHash)
+    self:setStatus(getText("IGUI_ServerGuide_Saving"))
 end
 
 --- "Cancel": discard the edit and return to the rendered view.
-function ServerGuidesUI:onCancelEdit()
+function ServerGuideUI:onCancelEdit()
     self.editing = false
     self.pendingEdit = false
     self:setStatus("")
@@ -302,27 +302,27 @@ function ServerGuidesUI:onCancelEdit()
 end
 
 --- "Edit menu": open the index (menu) editor.
-function ServerGuidesUI:onEditMenu()
-    if not (ServerGuidesClient and ServerGuidesClient.canEdit) then return end
-    if ServerGuidesIndexEditor then ServerGuidesIndexEditor.open(self) end
+function ServerGuideUI:onEditMenu()
+    if not (ServerGuideClient and ServerGuideClient.canEdit) then return end
+    if ServerGuideIndexEditor then ServerGuideIndexEditor.open(self) end
 end
 
 --- Maps a server-side failure reason to a localised message.
 local function reasonText(reason)
-    if reason == "not authorized" then return getText("IGUI_ServerGuides_NotAuthorized") end
-    if reason == "too large" then return getText("IGUI_ServerGuides_TooLarge") end
-    if reason == "stale" then return getText("IGUI_ServerGuides_Stale") end
-    return getText("IGUI_ServerGuides_SaveError", tostring(reason or "?"))
+    if reason == "not authorized" then return getText("IGUI_ServerGuide_NotAuthorized") end
+    if reason == "too large" then return getText("IGUI_ServerGuide_TooLarge") end
+    if reason == "stale" then return getText("IGUI_ServerGuide_Stale") end
+    return getText("IGUI_ServerGuide_SaveError", tostring(reason or "?"))
 end
 
 --- Result of a save/menu edit, forwarded by the client.
-function ServerGuidesUI:onEditResult(args)
+function ServerGuideUI:onEditResult(args)
     if args.ok then
         if args.op == "savePage" then
             self.editing = false
             self:updateEditControls()
         end
-        self:setStatus(getText("IGUI_ServerGuides_Saved"))
+        self:setStatus(getText("IGUI_ServerGuide_Saved"))
         if self.indexEditor then self.indexEditor:onEditResult(args) end
     else
         self:setStatus(reasonText(args.reason), true)
@@ -332,11 +332,11 @@ end
 
 --- Selects the first clickable page (skips headers). If prefRules, tries the
 --- first page of a rules category.
-function ServerGuidesUI:selectFirst(prefRules)
+function ServerGuideUI:selectFirst(prefRules)
     local items = self.listBox.items
     local target = nil
     if prefRules then
-        local tree = ServerGuidesClient and ServerGuidesClient.tree or {}
+        local tree = ServerGuideClient and ServerGuideClient.tree or {}
         -- find the first file of a rules category
         local rulesFile = nil
         for _, cat in ipairs(tree) do
@@ -363,7 +363,7 @@ end
 -- Window
 ------------------------------------------------------------------------
 
-function ServerGuidesUI:onClose()
+function ServerGuideUI:onClose()
     self:setVisible(false)
     -- detach from whichever layer we were shown in
     if self.parentMenu then
@@ -374,16 +374,16 @@ function ServerGuidesUI:onClose()
         self:removeFromUIManager()
         self.addedToUIMgr = false
     end
-    ServerGuidesUI.instance = nil
+    ServerGuideUI.instance = nil
 end
 
-function ServerGuidesUI:new()
+function ServerGuideUI:new()
     local w = LIST_WIDTH + BODY_WIDTH
     local h = 520
     local x = getCore():getScreenWidth() / 2 - w / 2
     local y = getCore():getScreenHeight() / 2 - h / 2
     local o = ISCollapsableWindow.new(self, x, y, w, h)
-    o.title = getText("IGUI_ServerGuides_WindowTitle")
+    o.title = getText("IGUI_ServerGuide_WindowTitle")
     o.resizable = true
     o:setWantKeyEvents(true)
     return o
@@ -398,7 +398,7 @@ end
 --- -- instead of resuming the game. Resuming routes through code that, on some
 --- servers, hits an unrelated menu-render bug (a bad UI_servers_refresh_timer
 --- translation), so we avoid it. Otherwise (in-game auto-open) use the UIManager.
-function ServerGuidesUI.attach(inst)
+function ServerGuideUI.attach(inst)
     local menu = MainScreen.instance
     local overMenu = menu and menu:isVisible() and menu.inGame == true
     if overMenu then
@@ -428,35 +428,35 @@ end
 --- level may have changed since the last open (e.g. admin granted/revoked), and
 --- canEdit is only refreshed by a sendIndex reply, never by broadcasts.
 -- @param prefRules if true, opens straight on the first rules page
-function ServerGuidesUI.open(prefRules)
+function ServerGuideUI.open(prefRules)
     if isServer() then return end
-    if not ServerGuidesUI.instance then
-        ServerGuidesUI.instance = ServerGuidesUI:new()
-        ServerGuidesUI.instance:initialise()
+    if not ServerGuideUI.instance then
+        ServerGuideUI.instance = ServerGuideUI:new()
+        ServerGuideUI.instance:initialise()
     end
-    local inst = ServerGuidesUI.instance
-    ServerGuidesUI.attach(inst)
+    local inst = ServerGuideUI.instance
+    ServerGuideUI.attach(inst)
     inst:setVisible(true)
     inst:bringToTop()
     inst:refreshList()
 
     -- always refresh from the server (cheap; index is tiny)
     inst.pendingRulesPref = prefRules
-    if ServerGuidesClient then ServerGuidesClient.requestIndex() end
+    if ServerGuideClient then ServerGuideClient.requestIndex() end
 
-    if ServerGuidesClient and ServerGuidesClient.tree then
+    if ServerGuideClient and ServerGuideClient.tree then
         -- show the cached tree immediately; the fresh reply updates it shortly
         inst:selectFirst(prefRules)
     end
 end
 
-function ServerGuidesUI.openRules()
-    ServerGuidesUI.open(true)
+function ServerGuideUI.openRules()
+    ServerGuideUI.open(true)
 end
 
 --- Keeps the player on the page they were reading after a live refresh (e.g. an
 --- edit), instead of jumping back to the first page. Falls back to selectFirst.
-function ServerGuidesUI:reselectOrFirst(prefRules)
+function ServerGuideUI:reselectOrFirst(prefRules)
     if self.currentFile then
         for idx, it in ipairs(self.listBox.items) do
             if it.item.file == self.currentFile then
@@ -471,8 +471,8 @@ end
 
 --- Called by the client when the index arrives (to fill the list if the window
 --- is already open and waiting).
-function ServerGuidesUI.onIndexReady()
-    local inst = ServerGuidesUI.instance
+function ServerGuideUI.onIndexReady()
+    local inst = ServerGuideUI.instance
     if inst and inst:isVisible() then
         inst:refreshList()
         inst:reselectOrFirst(inst.pendingRulesPref)

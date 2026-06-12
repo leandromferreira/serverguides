@@ -1,4 +1,4 @@
-[h1]Server Guides[/h1]
+[h1]Server Guide[/h1]
 
 [b]Publish your server's guides and rules, read in-game in a clean windowed viewer. Edit them live — straight from the pause menu, no relog, no file uploads.[/b]
 
@@ -33,15 +33,37 @@ Your staff never has to FTP into the server to fix a typo. Open the guide window
 [hr][/hr]
 [h2]Formatting & images[/h2]
 [list]
-[*][b]Rich text[/b] — use the native [i]ISRichTextPanel[/i] tags: line breaks, font sizes, colors, alignment, indenting, images.
+[*][b]Rich text[/b] — write your pages with the native [i]ISRichTextPanel[/i] tags (see the list below).
 [*][b]Images[/b] — reference an image packed in a loaded mod's [i]media/[/i] folder by name. A demo image and a separate example image-mod are included so you can ship your own.
 [/list]
+
+[b]Supported tags:[/b]
+[list]
+[*][b]<LINE>[/b] — line break
+[*][b]<SIZE:small|medium|large>[/b] — font size
+[*][b]<RGB:r,g,b>[/b] — text color (values 0–1)
+[*][b]<PUSHRGB:r,g,b>[/b] / [b]<POPRGB>[/b] — push/pop a color (for inline colored spans)
+[*][b]<RED> <GREEN> <ORANGE>[/b] — quick colors
+[*][b]<CENTRE> <LEFT> <RIGHT>[/b] — text alignment
+[*][b]<INDENT:n>[/b] / [b]<SETX:n>[/b] — indent / set X position (pixels)
+[*][b]<SPACE>[/b] — a space
+[*][b]<IMAGE:name>[/b] / [b]<IMAGECENTRE:name,width,height>[/b] — show an image (by media/ name)
+[/list]
+
+[hr][/hr]
+[h2]Using images[/h2]
+The text is streamed live, but [b]images are not[/b] — an image must be packed in a loaded mod's [i]media/[/i] folder (that's the only place the game scans into its texture map and syncs to clients). You then reference it [b]by name[/b], starting from [i]media/[/i] (the mod name is NOT part of the path):
+[list]
+[*]Put your PNGs in a mod under [i]media/ui/guias/[/i] (a unique subfolder avoids clashes with other mods).
+[*]In a guide page, write [b]<IMAGECENTRE:media/ui/guias/yourimage.png,512,512>[/b] (or [b]<IMAGE:media/ui/guias/yourimage.png>[/b]).
+[/list]
+A demo image ships with this mod. To add [b]your own[/b] images without editing this mod, use the companion mod [b]"ServerGuide Images Example"[/b] as a template. In multiplayer that image mod must be on the Workshop (local mods don't sync to clients).
 
 [hr][/hr]
 [h2]Setup[/h2]
 [olist]
 [*]Enable the mod on the server (and on clients in MP, via the Workshop).
-[*]On first run it creates [i]~/Zomboid/Lua/ServerGuides/[/i] and fills it with template files — it never overwrites existing content.
+[*]On first run it creates [i]~/Zomboid/Lua/ServerGuide/[/i] and fills it with template files — it never overwrites existing content.
 [*]Edit the guides from inside the game, or edit the [i].txt[/i] files directly (UTF-8). Open the window from the [b]pause menu (Esc)[/b].
 [/olist]
 

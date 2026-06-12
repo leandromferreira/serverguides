@@ -1,6 +1,6 @@
 --[[
-    ServerGuides_Server.lua
-    Server side (authoritative). Reads the files in ~/Zomboid/Lua/ServerGuides/,
+    ServerGuide_Server.lua
+    Server side (authoritative). Reads the files in ~/Zomboid/Lua/ServerGuide/,
     builds the tree from index.txt, computes the rules version and answers the
     client's requests. In SP/local host the "server" and the "client" are the
     same process and commands are delivered locally.
@@ -14,7 +14,7 @@ if not isServer() and not isClient() then
     -- In SP/host this file runs in the same process as the client; ok.
 end
 
-ServerGuidesServer = ServerGuidesServer or {}
+ServerGuideServer = ServerGuideServer or {}
 
 ------------------------------------------------------------------------
 -- File reading
@@ -45,7 +45,7 @@ local function readContent(luaRelPath)
     local line = reader:readLine()
     while line ~= nil do
         total = total + #line + 1
-        if total > ServerGuides.MAX_FILE_BYTES then
+        if total > ServerGuide.MAX_FILE_BYTES then
             reader:close()
             return nil, "too large"
         end
@@ -74,23 +74,23 @@ end
 --- missing are dropped (with a log warning), without breaking the UI.
 -- @return tree (array of categories with items {title,file})
 local function loadTree()
-    local lines = readAllLines(ServerGuides.resolve(ServerGuides.INDEX_FILE))
+    local lines = readAllLines(ServerGuide.resolve(ServerGuide.INDEX_FILE))
     if not lines then
-        print("[ServerGuides] index.txt not found in Lua/" .. ServerGuides.FOLDER .. "/")
+        print("[ServerGuide] index.txt not found in Lua/" .. ServerGuide.FOLDER .. "/")
         return {}
     end
 
-    local parsed = ServerGuides.parseIndex(lines)
+    local parsed = ServerGuide.parseIndex(lines)
     local tree = {}
     for _, cat in ipairs(parsed) do
         local outCat = { cat = cat.cat, isRules = cat.isRules, items = {} }
         for _, item in ipairs(cat.items) do
-            local ok, reason = ServerGuides.isSafeRelativePath(item.file)
+            local ok, reason = ServerGuide.isSafeRelativePath(item.file)
             if not ok then
-                print("[ServerGuides] item skipped (unsafe path: " .. tostring(reason) ..
+                print("[ServerGuide] item skipped (unsafe path: " .. tostring(reason) ..
                     "): " .. tostring(item.file))
-            elseif not ServerGuides.luaFileExists(ServerGuides.resolve(item.file)) then
-                print("[ServerGuides] item skipped (missing file): " .. tostring(item.file))
+            elseif not ServerGuide.luaFileExists(ServerGuide.resolve(item.file)) then
+                print("[ServerGuide] item skipped (missing file): " .. tostring(item.file))
             else
                 table.insert(outCat.items, { title = item.title, file = item.file })
             end
@@ -101,7 +101,7 @@ local function loadTree()
 end
 
 --- Rules version = hash of the content of every file in the categories marked
---- as rules (see ServerGuides.classifyCategory). Change a file -> change the
+--- as rules (see ServerGuide.classifyCategory). Change a file -> change the
 --- hash -> the client auto-opens the rules once (SPEC 8.1).
 local function computeRulesVersion(tree)
     local seed = 5381
@@ -109,12 +109,12 @@ local function computeRulesVersion(tree)
     for _, cat in ipairs(tree) do
         if cat.isRules then
             for _, item in ipairs(cat.items) do
-                local content = readContent(ServerGuides.resolve(item.file))
+                local content = readContent(ServerGuide.resolve(item.file))
                 if content then
                     any = true
                     -- include the path so the hash changes if the order/file changes
                     -- chain numerically (no hex round-trip -- tonumber(hex,16) is unreliable here)
-                    seed = ServerGuides.hashNumber(item.file .. "\0" .. content, seed)
+                    seed = ServerGuide.hashNumber(item.file .. "\0" .. content, seed)
                 end
             end
         end
@@ -127,16 +127,16 @@ end
 --- Used for editing, so staff can see and fix broken entries instead of having
 --- them silently vanish (loadTree, used for viewing, drops them).
 local function loadRawTree()
-    local lines = readAllLines(ServerGuides.resolve(ServerGuides.INDEX_FILE))
+    local lines = readAllLines(ServerGuide.resolve(ServerGuide.INDEX_FILE))
     if not lines then return {} end
-    return ServerGuides.parseIndex(lines)
+    return ServerGuide.parseIndex(lines)
 end
 
 --- Canonical version hash of the menu (index.txt), computed from the raw tree's
 --- serialised form so the client and server agree on it for optimistic
 --- concurrency on menu edits.
 local function computeIndexVersion()
-    return ServerGuides.hashString(ServerGuides.serializeIndex(loadRawTree()))
+    return ServerGuide.hashString(ServerGuide.serializeIndex(loadRawTree()))
 end
 
 ------------------------------------------------------------------------
@@ -159,10 +159,10 @@ end
 --- SERVER actually allows -- the client can't reliably read its own access level
 --- in MP. broadcastIndex omits canEdit (it's not per-player), so each client
 --- keeps the value from its own request.
-function ServerGuidesServer.sendIndex(player)
+function ServerGuideServer.sendIndex(player)
     local payload = buildIndexPayload()
-    payload.canEdit = ServerGuides.isStaff(player)
-    sendServerCommand(player, ServerGuides.MODULE, "index", payload)
+    payload.canEdit = ServerGuide.isStaff(player)
+    sendServerCommand(player, ServerGuide.MODULE, "index", payload)
 end
 
 --- Pushes a fresh "index" to everyone after an edit. In MP the no-player form
@@ -170,21 +170,21 @@ end
 --- deliver to the local client directly. The editing client also re-requests
 --- the index on editResult (see client), so its own refresh never depends on
 --- broadcast self-delivery.
-function ServerGuidesServer.broadcastIndex()
+function ServerGuideServer.broadcastIndex()
     local payload = buildIndexPayload()
     if isServer() then
-        sendServerCommand(ServerGuides.MODULE, "index", payload)
-    elseif ServerGuidesClient and ServerGuidesClient.OnServerCommand then
-        ServerGuidesClient.OnServerCommand(ServerGuides.MODULE, "index", payload)
+        sendServerCommand(ServerGuide.MODULE, "index", payload)
+    elseif ServerGuideClient and ServerGuideClient.OnServerCommand then
+        ServerGuideClient.OnServerCommand(ServerGuide.MODULE, "index", payload)
     end
 end
 
 --- Answers "page" (in chunks) or "error" to the requesting player.
-function ServerGuidesServer.sendPage(player, file)
-    local ok, reason = ServerGuides.isSafeRelativePath(file)
+function ServerGuideServer.sendPage(player, file)
+    local ok, reason = ServerGuide.isSafeRelativePath(file)
     if not ok then
-        print("[ServerGuides] requestPage refused (" .. tostring(reason) .. "): " .. tostring(file))
-        sendServerCommand(player, ServerGuides.MODULE, "error", { file = file, reason = "invalid path" })
+        print("[ServerGuide] requestPage refused (" .. tostring(reason) .. "): " .. tostring(file))
+        sendServerCommand(player, ServerGuide.MODULE, "error", { file = file, reason = "invalid path" })
         return
     end
 
@@ -198,22 +198,22 @@ function ServerGuidesServer.sendPage(player, file)
         if declared then break end
     end
     if not declared then
-        sendServerCommand(player, ServerGuides.MODULE, "error", { file = file, reason = "not in index" })
+        sendServerCommand(player, ServerGuide.MODULE, "error", { file = file, reason = "not in index" })
         return
     end
 
-    local content, why = readContent(ServerGuides.resolve(file))
+    local content, why = readContent(ServerGuide.resolve(file))
     if not content then
-        sendServerCommand(player, ServerGuides.MODULE, "error", { file = file, reason = why or "read error" })
+        sendServerCommand(player, ServerGuide.MODULE, "error", { file = file, reason = why or "read error" })
         return
     end
 
     -- Slice into chunks so it does not exceed the network packet limit.
-    local size = ServerGuides.CHUNK_SIZE
+    local size = ServerGuide.CHUNK_SIZE
     local total = math.max(1, math.ceil(#content / size))
     for seq = 1, total do
         local chunk = string.sub(content, (seq - 1) * size + 1, seq * size)
-        sendServerCommand(player, ServerGuides.MODULE, "page", {
+        sendServerCommand(player, ServerGuide.MODULE, "page", {
             file = file,
             seq = seq,
             total = total,
@@ -228,19 +228,19 @@ end
 
 -- In-flight page uploads, keyed by client transaction id.
 -- txn -> { file=, total=, parts={}, count=, bytes=, owner=, baseHash=, ts= }
-ServerGuidesServer.uploads = {}
+ServerGuideServer.uploads = {}
 
 local function sendEditResult(player, fields)
-    sendServerCommand(player, ServerGuides.MODULE, "editResult", fields)
+    sendServerCommand(player, ServerGuide.MODULE, "editResult", fields)
 end
 
 --- Drops upload buffers older than ~30s (admin disconnected mid-upload, etc.).
 local function pruneUploads()
     local now = getTimestampMs and getTimestampMs() or 0
     if now == 0 then return end
-    for txn, buf in pairs(ServerGuidesServer.uploads) do
+    for txn, buf in pairs(ServerGuideServer.uploads) do
         if now - (buf.ts or now) > 30000 then
-            ServerGuidesServer.uploads[txn] = nil
+            ServerGuideServer.uploads[txn] = nil
         end
     end
 end
@@ -252,45 +252,45 @@ end
 
 --- Final step of a page save: validate and write the assembled content.
 local function commitPage(player, buf)
-    if not ServerGuides.isStaff(player) then
+    if not ServerGuide.isStaff(player) then
         sendEditResult(player, { ok = false, op = "savePage", file = buf.file, reason = "not authorized" })
         return
     end
-    local ok, why = ServerGuides.isSafeRelativePath(buf.file)
+    local ok, why = ServerGuide.isSafeRelativePath(buf.file)
     if not ok then
         sendEditResult(player, { ok = false, op = "savePage", file = buf.file, reason = why })
         return
     end
 
     local content = table.concat(buf.parts)
-    if #content > ServerGuides.MAX_FILE_BYTES then
+    if #content > ServerGuide.MAX_FILE_BYTES then
         sendEditResult(player, { ok = false, op = "savePage", file = buf.file, reason = "too large" })
         return
     end
 
     -- Optimistic concurrency: reject if the file changed since the editor opened.
     if buf.baseHash and buf.baseHash ~= "" then
-        local current = readContent(ServerGuides.resolve(buf.file)) or ""
-        if ServerGuides.hashString(current) ~= buf.baseHash then
+        local current = readContent(ServerGuide.resolve(buf.file)) or ""
+        if ServerGuide.hashString(current) ~= buf.baseHash then
             sendEditResult(player, { ok = false, op = "savePage", file = buf.file, reason = "stale" })
             return
         end
     end
 
-    local wok, wreason = writeContent(ServerGuides.resolve(buf.file), content)
+    local wok, wreason = writeContent(ServerGuide.resolve(buf.file), content)
     if not wok then
         sendEditResult(player, { ok = false, op = "savePage", file = buf.file, reason = wreason })
         return
     end
 
-    print("[ServerGuides] page saved by " .. tostring(player:getUsername()) .. ": " .. buf.file)
+    print("[ServerGuide] page saved by " .. tostring(player:getUsername()) .. ": " .. buf.file)
     sendEditResult(player, { ok = true, op = "savePage", file = buf.file })
-    ServerGuidesServer.broadcastIndex()
+    ServerGuideServer.broadcastIndex()
 end
 
-function ServerGuidesServer.onSavePageBegin(player, args)
-    if not ServerGuides.isStaff(player) then
-        print("[ServerGuides] DENIED savePage from " .. tostring(player and player:getUsername()))
+function ServerGuideServer.onSavePageBegin(player, args)
+    if not ServerGuide.isStaff(player) then
+        print("[ServerGuide] DENIED savePage from " .. tostring(player and player:getUsername()))
         sendEditResult(player, { ok = false, op = "savePage", reason = "not authorized" })
         return
     end
@@ -299,29 +299,29 @@ function ServerGuidesServer.onSavePageBegin(player, args)
     local txn = args and args.txn
     if type(file) ~= "string" or type(txn) ~= "string" or not total then return end
 
-    local ok, why = ServerGuides.isSafeRelativePath(file)
+    local ok, why = ServerGuide.isSafeRelativePath(file)
     if not ok then
         sendEditResult(player, { ok = false, op = "savePage", file = file, reason = why })
         return
     end
-    if total < 1 or total > ServerGuides.MAX_UPLOAD_CHUNKS then
+    if total < 1 or total > ServerGuide.MAX_UPLOAD_CHUNKS then
         sendEditResult(player, { ok = false, op = "savePage", file = file, reason = "bad chunk count" })
         return
     end
 
     pruneUploads()
-    ServerGuidesServer.uploads[txn] = {
+    ServerGuideServer.uploads[txn] = {
         file = file, total = total, parts = {}, count = 0, bytes = 0,
         owner = player:getUsername(), baseHash = args.baseHash,
         ts = getTimestampMs and getTimestampMs() or 0,
     }
 end
 
-function ServerGuidesServer.onSavePageChunk(player, args)
+function ServerGuideServer.onSavePageChunk(player, args)
     local txn = args and args.txn
     local seq = args and tonumber(args.seq)
     local chunk = args and args.chunk
-    local buf = txn and ServerGuidesServer.uploads[txn]
+    local buf = txn and ServerGuideServer.uploads[txn]
     if not buf then
         sendEditResult(player, { ok = false, op = "savePage", reason = "no transaction" })
         return
@@ -333,23 +333,23 @@ function ServerGuidesServer.onSavePageChunk(player, args)
     buf.parts[seq] = chunk
     buf.count = buf.count + 1
     buf.bytes = buf.bytes + #chunk
-    if buf.bytes > ServerGuides.MAX_FILE_BYTES then
-        ServerGuidesServer.uploads[txn] = nil
+    if buf.bytes > ServerGuide.MAX_FILE_BYTES then
+        ServerGuideServer.uploads[txn] = nil
         sendEditResult(player, { ok = false, op = "savePage", file = buf.file, reason = "too large" })
         return
     end
 
     if buf.count >= buf.total then
-        ServerGuidesServer.uploads[txn] = nil
+        ServerGuideServer.uploads[txn] = nil
         commitPage(player, buf)
     end
 end
 
 --- Rebuilds index.txt from a full tree sent by the client (whole-tree replace).
 --- The menu is tiny so it fits one command; only page CONTENT needs chunking.
-function ServerGuidesServer.onEditIndex(player, args)
-    if not ServerGuides.isStaff(player) then
-        print("[ServerGuides] DENIED editIndex from " .. tostring(player and player:getUsername()))
+function ServerGuideServer.onEditIndex(player, args)
+    if not ServerGuide.isStaff(player) then
+        print("[ServerGuide] DENIED editIndex from " .. tostring(player and player:getUsername()))
         sendEditResult(player, { ok = false, op = "editIndex", reason = "not authorized" })
         return
     end
@@ -368,13 +368,13 @@ function ServerGuidesServer.onEditIndex(player, args)
     -- Sanitise the incoming tree: keep only well-formed, safe entries.
     local clean = {}
     for _, cat in ipairs(inTree) do
-        local name = ServerGuides.trim(tostring(cat.cat or ""))
+        local name = ServerGuide.trim(tostring(cat.cat or ""))
         if name ~= "" then
             local outCat = { cat = name, isRules = not not cat.isRules, items = {} }
             for _, item in ipairs(cat.items or {}) do
-                local title = ServerGuides.trim(tostring(item.title or ""))
-                local fileRel = ServerGuides.trim(tostring(item.file or ""))
-                local safe = ServerGuides.isSafeRelativePath(fileRel)
+                local title = ServerGuide.trim(tostring(item.title or ""))
+                local fileRel = ServerGuide.trim(tostring(item.file or ""))
+                local safe = ServerGuide.isSafeRelativePath(fileRel)
                 if title ~= "" and fileRel ~= "" and safe then
                     table.insert(outCat.items, { title = title, file = fileRel })
                 end
@@ -383,8 +383,8 @@ function ServerGuidesServer.onEditIndex(player, args)
         end
     end
 
-    local wok, wreason = writeContent(ServerGuides.resolve(ServerGuides.INDEX_FILE),
-        ServerGuides.serializeIndex(clean))
+    local wok, wreason = writeContent(ServerGuide.resolve(ServerGuide.INDEX_FILE),
+        ServerGuide.serializeIndex(clean))
     if not wok then
         sendEditResult(player, { ok = false, op = "editIndex", reason = wreason })
         return
@@ -393,34 +393,34 @@ function ServerGuidesServer.onEditIndex(player, args)
     -- Create a starter file for any referenced page that does not exist yet.
     for _, cat in ipairs(clean) do
         for _, item in ipairs(cat.items) do
-            if not ServerGuides.luaFileExists(ServerGuides.resolve(item.file)) then
-                writeContent(ServerGuides.resolve(item.file), pageTemplate(item.title))
+            if not ServerGuide.luaFileExists(ServerGuide.resolve(item.file)) then
+                writeContent(ServerGuide.resolve(item.file), pageTemplate(item.title))
             end
         end
     end
 
-    print("[ServerGuides] menu edited by " .. tostring(player:getUsername()))
+    print("[ServerGuide] menu edited by " .. tostring(player:getUsername()))
     sendEditResult(player, { ok = true, op = "editIndex" })
-    ServerGuidesServer.broadcastIndex()
+    ServerGuideServer.broadcastIndex()
 end
 
-ServerGuidesServer.OnClientCommand = function(module, command, player, args)
-    if module ~= ServerGuides.MODULE then return end
+ServerGuideServer.OnClientCommand = function(module, command, player, args)
+    if module ~= ServerGuide.MODULE then return end
 
     if command == "requestIndex" then
-        ServerGuidesServer.sendIndex(player)
+        ServerGuideServer.sendIndex(player)
     elseif command == "requestPage" then
         local file = args and args.file
         if type(file) == "string" then
-            ServerGuidesServer.sendPage(player, file)
+            ServerGuideServer.sendPage(player, file)
         end
     elseif command == "savePageBegin" then
-        ServerGuidesServer.onSavePageBegin(player, args or {})
+        ServerGuideServer.onSavePageBegin(player, args or {})
     elseif command == "savePageChunk" then
-        ServerGuidesServer.onSavePageChunk(player, args or {})
+        ServerGuideServer.onSavePageChunk(player, args or {})
     elseif command == "editIndex" then
-        ServerGuidesServer.onEditIndex(player, args or {})
+        ServerGuideServer.onEditIndex(player, args or {})
     end
 end
 
-Events.OnClientCommand.Add(ServerGuidesServer.OnClientCommand)
+Events.OnClientCommand.Add(ServerGuideServer.OnClientCommand)

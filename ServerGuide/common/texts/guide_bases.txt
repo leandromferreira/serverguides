@@ -7,5 +7,5 @@ Recommended regions to build a base: <LINE><LINE>
 - <RED>Red<RGB:1,1,1>: city centers, high risk. <LINE>
 <INDENT:0><LINE>
 # To use images (e.g. a map), see the example mod
-# "ServerGuidesImagesExample" and reference by name:
+# "ServerGuideImagesExample" and reference by name:
 # <IMAGE:media/ui/guias/map.png>

@@ -11,7 +11,7 @@ NAME, not by a disk path. <LINE><LINE>
   &lt;IMAGECENTRE:media/ui/guias/poster.png,256,256&gt; <LINE>
 <SIZE:medium><LINE>
 
-<ORANGE>Live example<RGB:1,1,1> - the image below ships inside the ServerGuides mod itself
+<ORANGE>Live example<RGB:1,1,1> - the image below ships inside the ServerGuide mod itself
 (common/media/ui/guias/poster.png): <LINE><LINE>
 <IMAGECENTRE:media/ui/guias/poster.png,256,256>
 <LINE><LINE>
@@ -19,7 +19,7 @@ NAME, not by a disk path. <LINE><LINE>
 To use YOUR images: put the PNG in a media/ folder of an active mod and reference
 it by the path starting at media/. In multiplayer the mod holding the image must
 be published on the Workshop (local mods are not synced to clients) - see the
-example mod ServerGuidesImagesExample. <LINE><LINE>
+example mod ServerGuideImagesExample. <LINE><LINE>
 
 <ORANGE>Tag path rules:<RGB:0.7,0.7,0.7> <LINE>
 - The MOD name is NOT part of the path. A PNG at

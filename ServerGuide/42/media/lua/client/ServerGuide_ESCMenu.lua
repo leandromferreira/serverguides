@@ -1,6 +1,6 @@
 --[[
-    ServerGuides_ESCMenu.lua
-    Adds a "Server Guides" entry to the in-game pause menu (MainScreen with
+    ServerGuide_ESCMenu.lua
+    Adds a "Server Guide" entry to the in-game pause menu (MainScreen with
     self.inGame == true), styled as a native bottom-panel menu item -- the same
     approach Server Shop uses (an ISLabel in self.bottomPanel with the fade /
     prerenderBottomPanelLabel treatment), rather than a floating button. (SPEC 8)
@@ -28,7 +28,7 @@ local function lowestMenuBottom(self)
     return maxBottom
 end
 
-local function positionServerGuidesItem(self)
+local function positionServerGuideItem(self)
     self.serverGuidesOption:setY(lowestMenuBottom(self) + 16)
     self.bottomPanel:setHeight(self.serverGuidesOption:getBottom())
 end
@@ -42,7 +42,7 @@ function MainScreen:instantiate()
 
     local labelHgt = getTextManager():getFontHeight(UIFont.Large) + 8 * 2
     self.serverGuidesOption = ISLabel:new(self.quitToDesktop.x, self.quitToDesktop:getBottom() + 16,
-        labelHgt, getText("IGUI_ServerGuides_MenuButton"), 1, 1, 1, 1, UIFont.Large, true)
+        labelHgt, getText("IGUI_ServerGuide_MenuButton"), 1, 1, 1, 1, UIFont.Large, true)
     self.serverGuidesOption.internal = "SERVER_GUIDES"
     self.serverGuidesOption:initialise()
     self.bottomPanel:addChild(self.serverGuidesOption)
@@ -61,10 +61,10 @@ function MainScreen:instantiate()
     self.serverGuidesOption.onMouseDown = function()
         getSoundManager():playUISound("UIActivateMainMenuItem")
         -- open the guides OVER the pause menu (no resume), like Server Shop
-        ServerGuidesUI.open(false)
+        ServerGuideUI.open(false)
     end
 
-    positionServerGuidesItem(self)
+    positionServerGuideItem(self)
 
     -- render() resets the layout/height every frame; chain it (preserving any
     -- other mod's override, e.g. Server Shop) and re-place our item afterwards.
@@ -72,7 +72,7 @@ function MainScreen:instantiate()
     self.render = function(s)
         prevRender(s)
         if s.inGame and s.serverGuidesOption then
-            positionServerGuidesItem(s)
+            positionServerGuideItem(s)
         end
     end
 end

@@ -1,5 +1,5 @@
-name=Server Guides
-id=ServerGuides
+name=Server Guide
+id=ServerGuide
 description=Your rules and guides stop being a Discord link nobody opens and become a first-class, in-game window with a side menu and formatted text. Content lives in one folder on the server and is [b]streamed live[/b] to players: edit it and everyone sees the new version the next time they open the window. Built for dedicated / multiplayer servers — the client never touches the disk, it only receives text over the network.
 poster=poster.png
 author=leozimmelo
