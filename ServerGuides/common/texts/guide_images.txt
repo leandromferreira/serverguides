@@ -1,0 +1,30 @@
+<CENTRE><SIZE:large> Images in guides <LINE><LINE>
+<LEFT><SIZE:medium>
+The text of this guide is served live from the server folder, but the IMAGE is
+not: it must be packaged inside the media/ folder of a loaded mod (registered in
+the texture map and synced to the client). That is why images are referenced by
+NAME, not by a disk path. <LINE><LINE>
+
+<SIZE:medium><ORANGE>How to write the tag<RGB:1,1,1> (shown as text, not rendered): <LINE><LINE>
+<SIZE:small>
+  &lt;IMAGE:media/ui/guias/poster.png&gt; <LINE>
+  &lt;IMAGECENTRE:media/ui/guias/poster.png,256,256&gt; <LINE>
+<SIZE:medium><LINE>
+
+<ORANGE>Live example<RGB:1,1,1> - the image below ships inside the ServerGuides mod itself
+(common/media/ui/guias/poster.png): <LINE><LINE>
+<IMAGECENTRE:media/ui/guias/poster.png,256,256>
+<LINE><LINE>
+<RGB:0.7,0.7,0.7><SIZE:small>
+To use YOUR images: put the PNG in a media/ folder of an active mod and reference
+it by the path starting at media/. In multiplayer the mod holding the image must
+be published on the Workshop (local mods are not synced to clients) - see the
+example mod ServerGuidesImagesExample. <LINE><LINE>
+
+<ORANGE>Tag path rules:<RGB:0.7,0.7,0.7> <LINE>
+- The MOD name is NOT part of the path. A PNG at
+  &lt;mod&gt;/common/media/ui/guias/map.png becomes media/ui/guias/map.png. <LINE>
+- Texture names are a FLAT namespace across all mods: use a unique subfolder
+  (e.g. media/ui/myserver/map.png) so you do not collide with another mod. <LINE>
+- An absolute path (e.g. /home/.../Zomboid/Lua/...) does NOT work: in MP the tag
+  is resolved on the client, which does not have the file. Only text is networked.

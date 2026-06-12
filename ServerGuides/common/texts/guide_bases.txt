@@ -1,0 +1,11 @@
+<CENTRE><SIZE:large> Base map <LINE><LINE>
+<LEFT><SIZE:medium>
+Recommended regions to build a base: <LINE><LINE>
+<INDENT:20>
+- <GREEN>Green<RGB:1,1,1>: rural areas, safer for beginners. <LINE>
+- <ORANGE>Orange<RGB:1,1,1>: suburbs, a good loot/risk balance. <LINE>
+- <RED>Red<RGB:1,1,1>: city centers, high risk. <LINE>
+<INDENT:0><LINE>
+# To use images (e.g. a map), see the example mod
+# "ServerGuidesImagesExample" and reference by name:
+# <IMAGE:media/ui/guias/map.png>

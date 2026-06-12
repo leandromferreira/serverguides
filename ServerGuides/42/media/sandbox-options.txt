@@ -1,0 +1,10 @@
+VERSION = 1,
+
+option ServerGuides.EditAccessLevels
+{
+    type = string,
+    default = admin;moderator;overseer;gm,
+    page = ServerGuides,
+    translation = ServerGuides_EditAccessLevels,
+    tooltip = ServerGuides_EditAccessLevels_tooltip,
+}

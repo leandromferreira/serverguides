@@ -1,0 +1,6 @@
+<CENTRE><SIZE:large> Server Rules <LINE><LINE>
+<LEFT><SIZE:medium>
+1. Respect other players. <LINE>
+2. <RGB:1,0.3,0.3>No<RGB:1,1,1> killing in safe zones. <LINE>
+3. Keep bases at least 10 tiles apart. <LINE><LINE>
+<RGB:1,0.8,0.2>Violations result in a ban. <RGB:1,1,1>

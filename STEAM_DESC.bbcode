@@ -1,0 +1,74 @@
+[h1]Server Guides[/h1]
+
+[b]Publish your server's guides and rules, read in-game in a clean windowed viewer. Edit them live — straight from the pause menu, no relog, no file uploads.[/b]
+
+Your rules and guides stop being a Discord link nobody opens and become a first-class, in-game window with a side menu and formatted text. Content lives in one folder on the server and is [b]streamed live[/b] to players: edit it and everyone sees the new version the next time they open the window. Built for dedicated / multiplayer servers — the client never touches the disk, it only receives text over the network.
+
+[hr][/hr]
+[h2]What it does[/h2]
+[list]
+[*][b]In-game guide & rules viewer[/b] — a window with a category menu on the left and formatted, scrollable text on the right.
+[*][b]Live content[/b] — the guides live in a folder on the server; change them and players get the new version on reopen. No client downloads, no relog.
+[*][b]Read-only for players[/b] — they open, read and close. No "I have read and agree" gate, no blocking.
+[*][b]Rules auto-open[/b] — when you change the rules, the window pops up once for each player on their next join (tracked per character, by content hash).
+[/list]
+
+[hr][/hr]
+[h2]Edit in-game (staff only)[/h2]
+Your staff never has to FTP into the server to fix a typo. Open the guide window and you get two extra buttons:
+[list]
+[*][b]Edit[/b] — edit the current page's text right there (the raw rich-text markup). Save, and the change is written on the server and goes live for everyone.
+[*][b]Edit menu[/b] — create / rename / remove categories and pages, mark a category as [i]Rules[/i], and reorder — all from the UI. New pages get their file created automatically.
+[/list]
+[b]Who can edit is up to you[/b] — a sandbox option lists the access levels allowed (default [i]admin;moderator;overseer;gm[/i]; leave empty to allow none). The single-player / co-op host can always edit.
+
+[hr][/hr]
+[h2]Multiplayer-ready[/h2]
+[list]
+[*][b]Server-authoritative[/b] — only the server reads and writes the files. Every edit is re-validated on the server (access level, safe path, 256 KB limit); the buttons are cosmetic, a client can't forge a write.
+[*][b]Streamed safely[/b] — pages are sliced into chunks over the network and reassembled on the client, so large guides just work.
+[*][b]Live sync[/b] — saved edits broadcast to everyone; no relog.
+[/list]
+
+[hr][/hr]
+[h2]Formatting & images[/h2]
+[list]
+[*][b]Rich text[/b] — use the native [i]ISRichTextPanel[/i] tags: line breaks, font sizes, colors, alignment, indenting, images.
+[*][b]Images[/b] — reference an image packed in a loaded mod's [i]media/[/i] folder by name. A demo image and a separate example image-mod are included so you can ship your own.
+[/list]
+
+[hr][/hr]
+[h2]Setup[/h2]
+[olist]
+[*]Enable the mod on the server (and on clients in MP, via the Workshop).
+[*]On first run it creates [i]~/Zomboid/Lua/ServerGuides/[/i] and fills it with template files — it never overwrites existing content.
+[*]Edit the guides from inside the game, or edit the [i].txt[/i] files directly (UTF-8). Open the window from the [b]pause menu (Esc)[/b].
+[/olist]
+
+[hr][/hr]
+[h2]Sandbox options[/h2]
+[list]
+[*][b]Access levels allowed to edit[/b] — a semicolon-separated list of roles that may edit in-game (default [i]admin;moderator;overseer;gm[/i]).
+[/list]
+
+[hr][/hr]
+[h2]Languages[/h2]
+English and Português (Brasil).
+
+[hr][/hr]
+[i]Build 42. Safe to add to an existing server: it only creates its folder if missing and never overwrites your content.[/i]
+
+[hr][/hr]
+[h2]Permissions for Modders[/h2]
+
+[b]Ask for permission.[/b]
+
+This mod may [b]not[/b] be included in modpacks, collections distributed as a single download, or any form of redistribution without the express permission of the original creator. Extensions and patches are also subject to this restriction. Having received permission, credit must be given to the original creator both within the mod files and wherever the mod is published online.
+
+[hr][/hr]
+
+[h2]Copyright[/h2]
+
+[b]Copyright 2026 Leandro Ferreira.[/b] This item is not authorized for posting on Steam, except under the Steam account named leozimmelo.
+
+All rights reserved. This mod may not be reuploaded, mirrored, or included in modpacks or collections distributed as a single download without the express written permission of the original creator.

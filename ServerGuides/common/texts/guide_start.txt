@@ -1,0 +1,10 @@
+<CENTRE><SIZE:large> Quick start <LINE><LINE>
+<LEFT><SIZE:medium>
+Welcome to the server! A few steps to get going: <LINE><LINE>
+<INDENT:20>
+1. Find a house nearby to shelter on your first night. <LINE>
+2. Gather food, water and a melee weapon. <LINE>
+3. Avoid big cities in the first few days. <LINE>
+4. Open the <RGB:0.6,0.9,1>pause menu (Esc)<RGB:1,1,1> and click <RGB:0.6,0.9,1>Server Guides<RGB:1,1,1> to reopen these anytime. <LINE>
+<INDENT:0><LINE>
+Have fun!

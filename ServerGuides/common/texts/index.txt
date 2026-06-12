@@ -1,0 +1,26 @@
+# index.txt - menu tree manifest for ServerGuides
+#
+# Copy this whole folder (common/texts/) to:
+#   ~/Zomboid/Lua/ServerGuides/   (on the machine that HOSTS the game/server)
+# (On first run the mod also creates and seeds this folder automatically.)
+#
+# Format rules:
+#   - Lines starting with # and blank lines are ignored.
+#   - [Section]            opens a top-level category in the side menu.
+#   - Title = file.txt     adds a clickable page (title is free text).
+#   - Order is preserved (not alphabetical).
+#   - A missing file is skipped (with a log warning), without breaking the UI.
+#
+# RULES category (for the one-time auto-open when you edit the rules):
+#   - A section named [Rules] (or [Regras]) is treated as rules automatically;
+#     OR prefix the name with * to mark it explicitly, e.g. [*Conduct].
+#     Changing the content of those pages re-opens the window once.
+
+[Rules]
+General = rules_general.txt
+PvP     = rules_pvp.txt
+
+[Guides]
+Quick start = guide_start.txt
+Base map    = guide_bases.txt
+Images      = guide_images.txt

@@ -1,0 +1,7 @@
+<CENTRE><SIZE:large> PvP Rules <LINE><LINE>
+<LEFT><SIZE:medium>
+<ORANGE>Safe zones<RGB:1,1,1> are no-PvP areas. <LINE>
+1. PvP is allowed only outside safe zones. <LINE>
+2. No teaming up (metagaming) to raid bases. <LINE>
+3. No harassing new players during their first 24h. <LINE><LINE>
+<RGB:1,0.8,0.2>When in doubt, ask an admin before attacking. <RGB:1,1,1>
