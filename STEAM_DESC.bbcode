@@ -57,7 +57,14 @@ The text is streamed live, but [b]images are not[/b] — an image must be packed
 [*]Put your PNGs in a mod under [i]media/ui/guias/[/i] (a unique subfolder avoids clashes with other mods).
 [*]In a guide page, write [b]<IMAGECENTRE:media/ui/guias/yourimage.png,512,512>[/b] (or [b]<IMAGE:media/ui/guias/yourimage.png>[/b]).
 [/list]
-A demo image ships with this mod. To add [b]your own[/b] images without editing this mod, use the companion mod [b]"ServerGuide Images Example"[/b] as a template. In multiplayer that image mod must be on the Workshop (local mods don't sync to clients).
+A demo image ships with this mod. To add [b]your own[/b] images without editing this mod, use the companion mod [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3743487241]ServerGuide Images Example[/url][/b] as a template. In multiplayer that image mod must be on the Workshop (local mods don't sync to clients).
+
+[b]Image size[/b] — there is no hard pixel limit (it's bounded by the GPU's max texture size, normally well above 4096px), but for performance:
+[list]
+[*]Use [b]power-of-two[/b] dimensions (256, 512, 1024…). The engine pads any other size up to the next power of two in video memory, so a 513px image costs as much as 1024px.
+[*]The image is scaled to the [b]width,height in <IMAGECENTRE:…,w,h>[/b] — don't ship a file much larger than you actually display.
+[*]Keep dimensions at/under ~2048px to be safe on older GPUs, and keep the file small: every client downloads the image mod.
+[/list]
 
 [hr][/hr]
 [h2]Setup[/h2]

@@ -1,5 +1,7 @@
 # Server Guide (Project Zomboid B42)
 
+**Steam Workshop:** [Server Guide](https://steamcommunity.com/sharedfiles/filedetails/?id=3743488819) · [Images Example](https://steamcommunity.com/sharedfiles/filedetails/?id=3743487241)
+
 A mod that lets the **server owner** publish **guides and rules** that players
 read inside the game, in a window with a side menu and formatted text. The
 content lives in a folder on the server and is **streamed live**: edit it (from
@@ -130,6 +132,19 @@ To use **your own** images without editing this mod, pack them into a separate m
 and reference them by name — see the example mod
 [`ServerGuideImagesExample`](../ServerGuideImagesExample). In multiplayer the mod
 with the images must be on the **Workshop** (local mods don't sync to the client).
+
+### Image size
+
+There is no hard pixel limit (it's bounded by the GPU's max texture size, normally
+well above 4096px), but for performance:
+
+- Use **power-of-two** dimensions (256, 512, 1024…). The engine pads any other size
+  up to the next power of two in video memory (`getNextPowerOfTwoHW`), so a 513px
+  image costs as much as 1024px.
+- The image is scaled to the **width,height in `<IMAGECENTRE:…,w,h>`** — don't ship
+  a file much larger than you actually display.
+- Keep dimensions at/under ~2048px to be safe on older GPUs, and keep the file small:
+  every client downloads the image mod.
 
 ## Limits
 

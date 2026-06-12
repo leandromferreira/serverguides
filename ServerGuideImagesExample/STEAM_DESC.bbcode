@@ -1,0 +1,59 @@
+[h1]ServerGuide Images Example[/h1]
+
+[b]A template mod for shipping the images used in your [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3743488819]Server Guide[/url] pages. No Lua — just a packed media/ folder you copy and fill with your own PNGs.[/b]
+
+[i]Requires the [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3743488819]Server Guide[/url][/b] mod.[/i]
+
+[hr][/hr]
+[h2]Why a separate mod?[/h2]
+Server Guide streams your guide [b]text[/b] live from the server, but [b]images cannot[/b] travel that way:
+[list]
+[*]In multiplayer only text goes over the network — image bytes never reach the client.
+[*]The game only loads images that are in a [b]mod's [i]media/[/i] folder[/b] (the texture map), and only those are synced to clients.
+[/list]
+So images live in a mod. This is that mod — a ready-to-copy shell.
+
+[hr][/hr]
+[h2]How to use[/h2]
+[olist]
+[*][b]Copy this mod[/b] and rename it ([i]name[/i] and [i]id[/i] in [i]mod.info[/i]) to your own.
+[*][b]Drop your PNGs[/b] in [i]media/ui/guias/[/i] (or your own unique subfolder).
+[*][b]Reference them[/b] in your Server Guide pages by the path starting at [i]media/[/i]:
+[/olist]
+[code]<IMAGECENTRE:media/ui/guias/map.png,512,512>
+<IMAGE:media/ui/guias/logo.png>[/code]
+
+[hr][/hr]
+[h2]Path rules (important)[/h2]
+[list]
+[*][b]The mod name is NOT in the path.[/b] A PNG at [i]<mod>/42/media/ui/guias/map.png[/i] is registered as [i]media/ui/guias/map.png[/i]. Use that.
+[*][b]Flat namespace.[/b] Texture names are shared across all mods — files with the same path collide. Use a unique subfolder, e.g. [i]media/ui/myserver/map.png[/i].
+[*][b]No absolute paths.[/b] A path like [i]/home/.../Zomboid/Lua/...[/i] resolves on the client, which doesn't have the file. Always use the [i]media/[/i]-relative name.
+[/list]
+
+[hr][/hr]
+[h2]Image size[/h2]
+There is no hard pixel limit (it's bounded by the GPU's max texture size, normally well above 4096px), but for performance:
+[list]
+[*]Use [b]power-of-two[/b] dimensions (256, 512, 1024…). The game pads other sizes up to the next power of two in video memory — a 513px image costs as much as 1024px.
+[*]The image is scaled to the [b]width,height you pass in <IMAGECENTRE:…,w,h>[/b], so don't ship a file much bigger than you display.
+[*]Keep dimensions at/under ~2048px to be safe on older GPUs, and keep the file small — every client downloads this mod.
+[/list]
+
+[hr][/hr]
+[h2]Multiplayer[/h2]
+For images to reach players in MP, your copy of this mod must be [b]published on the Workshop[/b] and listed in the server's WorkshopItems. Local mods (in the server's [i]~/Zomboid/mods[/i]) are not sent to clients. In singleplayer / local host, a local mod is enough.
+
+[hr][/hr]
+[h2]Languages[/h2]
+No in-game text — it only ships images. Documentation in English and Português (Brasil).
+
+[hr][/hr]
+[i]Build 42.[/i]
+
+[hr][/hr]
+[h2]Use it freely[/h2]
+
+This is a [b]template[/b], meant to be copied. Duplicate it, rename it, drop in your
+own images and publish it for your server — no permission needed. Do whatever you
+want with it.

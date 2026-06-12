@@ -1,0 +1,7 @@
+name=ServerGuide Images Example
+id=ServerGuideImagesExample
+poster=poster.png
+pzversion=42.0
+require=ServerGuide
+description=Template for server owners to publish images used in ServerGuide pages.
+author=leozimmelo
