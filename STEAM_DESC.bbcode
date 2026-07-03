@@ -1,5 +1,6 @@
 [h1]Server Guide[/h1]
 
+author=leozimmelo
 [b]Publish your server's guides and rules, read in-game in a clean windowed viewer. Edit them live — straight from the pause menu, no relog, no file uploads.[/b]
 
 Your rules and guides stop being a Discord link nobody opens and become a first-class, in-game window with a side menu and formatted text. Content lives in one folder on the server and is [b]streamed live[/b] to players: edit it and everyone sees the new version the next time they open the window. Built for dedicated / multiplayer servers — the client never touches the disk, it only receives text over the network.
@@ -10,7 +11,8 @@ Your rules and guides stop being a Discord link nobody opens and become a first-
 [*][b]In-game guide & rules viewer[/b] — a window with a category menu on the left and formatted, scrollable text on the right.
 [*][b]Live content[/b] — the guides live in a folder on the server; change them and players get the new version on reopen. No client downloads, no relog.
 [*][b]Read-only for players[/b] — they open, read and close. No "I have read and agree" gate, no blocking.
-[*][b]Rules auto-open[/b] — when you change the rules, the window pops up once for each player on their next join (tracked per character, by content hash).
+[*][b]Opens on join[/b] — the window pops up automatically every time a player enters the server, so newcomers actually see your rules. Each player can switch this off with a checkbox in the window.
+[*][b]Always one keypress away[/b] — open it anytime with [b]F2[/b] (remappable in Options › Keybindings) or the [b]Server Guide[/b] entry in the pause menu (Esc).
 [/list]
 
 [hr][/hr]
@@ -71,7 +73,8 @@ A demo image ships with this mod. To add [b]your own[/b] images without editing 
 [olist]
 [*]Enable the mod on the server (and on clients in MP, via the Workshop).
 [*]On first run it creates [i]~/Zomboid/Lua/ServerGuide/[/i] and fills it with template files — it never overwrites existing content.
-[*]Edit the guides from inside the game, or edit the [i].txt[/i] files directly (UTF-8). Open the window from the [b]pause menu (Esc)[/b].
+[*]Edit the guides in-game with the [b]Edit[/b] / [b]Edit menu[/b] buttons (staff), or edit the [i].txt[/i] files directly on the server (UTF-8).
+[*]Players open the window with [b]F2[/b] (remappable in Options › Keybindings) or the [b]Server Guide[/b] button in the pause menu (Esc) — and it opens automatically on join.
 [/olist]
 
 [hr][/hr]

@@ -130,9 +130,24 @@ function ServerGuideUI:createChildren()
     self.editor:setVisible(false)
     self:addChild(self.editor)
 
-    -- Status/feedback line at the bottom-left of the window.
-    self.statusLabel = ISLabel:new(UI_BORDER_SPACING, btnY + 4, BTN_HEIGHT, "",
-        1, 1, 1, 1, UIFont.NewSmall, true)
+    -- "Open on join" toggle (bottom-left). Per-player, defaults ON. The window
+    -- pops up every time the player joins until they untick this.
+    local tickWid = getTextManager():MeasureStringX(UIFont.NewSmall,
+        getText("IGUI_ServerGuide_AutoOpen")) + 30
+    self.autoOpenTick = ISTickBox:new(UI_BORDER_SPACING, btnY, tickWid, BTN_HEIGHT,
+        "", self, ServerGuideUI.onToggleAutoOpen)
+    self.autoOpenTick:initialise()
+    self.autoOpenTick:instantiate()
+    self.autoOpenTick:setAnchorsTBLR(false, true, true, false)
+    self.autoOpenTick:setFont(UIFont.NewSmall)
+    self.autoOpenTick:addOption(getText("IGUI_ServerGuide_AutoOpen"), nil)
+    self.autoOpenTick:setSelected(1,
+        ServerGuideClient and ServerGuideClient.isAutoOpenEnabled() or false)
+    self:addChild(self.autoOpenTick)
+
+    -- Status/feedback line, to the right of the toggle.
+    self.statusLabel = ISLabel:new(self.autoOpenTick:getRight() + UI_BORDER_SPACING,
+        btnY + 4, BTN_HEIGHT, "", 1, 1, 1, 1, UIFont.NewSmall, true)
     self.statusLabel:initialise()
     self.statusLabel:instantiate()
     self.statusLabel:setAnchorsTBLR(false, true, true, false)
@@ -140,6 +155,11 @@ function ServerGuideUI:createChildren()
 
     self:updateEditControls()
     self:refreshList()
+end
+
+--- Tickbox callback: persist the player's "open on join" preference.
+function ServerGuideUI:onToggleAutoOpen(index, selected)
+    if ServerGuideClient then ServerGuideClient.setAutoOpenEnabled(selected == true) end
 end
 
 --- Shows the edit controls only for staff, and only the right set for the

@@ -78,8 +78,8 @@ local function onIndex(args)
 
     if ServerGuideUI.onIndexReady then ServerGuideUI.onIndexReady() end
 
-    -- One-time rules auto-open per version (SPEC 8.1), if not consumed here yet.
-    ServerGuideClient.tryAutoOpenRules()
+    -- Auto-open on join (once per join), unless the player disabled it.
+    ServerGuideClient.tryAutoOpen()
 end
 
 local function onPage(args)
@@ -146,30 +146,67 @@ end
 Events.OnServerCommand.Add(ServerGuideClient.OnServerCommand)
 
 ------------------------------------------------------------------------
--- Rules auto-open (SPEC 8.1)
+-- Auto-open on join (per-player opt-out)
 ------------------------------------------------------------------------
 
---- Opens the rules once when the version seen in the player's ModData differs
---- from the current one. Server-authoritative: the mark lives in the character's
---- ModData (transmitModData).
-function ServerGuideClient.tryAutoOpenRules()
+-- Set on join, cleared after the first index reply so the window opens ONCE per
+-- join -- not again on later index refreshes (edits, manual reopen).
+ServerGuideClient.pendingAutoOpen = false
+
+--- Is the "open on join" behaviour enabled for this player? Default: ON.
+-- Stored per character in the player's ModData (server-authoritative in MP).
+function ServerGuideClient.isAutoOpenEnabled()
+    local player = getPlayer()
+    if not player then return true end
+    return player:getModData().SG_autoOpen ~= false
+end
+
+--- Sets the player's "open on join" preference and persists it.
+function ServerGuideClient.setAutoOpenEnabled(enabled)
     local player = getPlayer()
     if not player then return end
-    local version = ServerGuideClient.rulesVersion
-    if not version or version == "" then return end   -- no rules category
+    player:getModData().SG_autoOpen = enabled and true or false
+    player:transmitModData()   -- persists on the server (MP); harmless in SP
+end
 
-    local md = player:getModData()
-    if md.SG_seenRulesVersion ~= version then
-        ServerGuideUI.openRules()
-        md.SG_seenRulesVersion = version
-        player:transmitModData()   -- persists on the server (MP); harmless in SP
+--- Opens the window automatically on join, unless the player disabled it.
+-- Guarded by pendingAutoOpen so later index refreshes don't reopen it.
+function ServerGuideClient.tryAutoOpen()
+    if not ServerGuideClient.pendingAutoOpen then return end
+    ServerGuideClient.pendingAutoOpen = false
+    if not ServerGuideClient.isAutoOpenEnabled() then return end
+    ServerGuideUI.openRules()
+end
+
+--- Polls for the index until the reply arrives (which runs tryAutoOpen and
+--- clears pendingAutoOpen). On MP join, OnCreatePlayer can fire before the
+--- client/server command channel is ready, so the first requestIndex may be
+--- dropped and no reply ever comes -- we re-request periodically for a while.
+local autoOpenTicks = 0
+local function autoOpenPoll()
+    if not ServerGuideClient.pendingAutoOpen then
+        Events.OnTick.Remove(autoOpenPoll)   -- opened (or disabled): done
+        return
+    end
+    autoOpenTicks = autoOpenTicks + 1
+    if autoOpenTicks % 30 == 1 then          -- (re)request roughly every 30 ticks
+        ServerGuideClient.requestIndex()
+    end
+    if autoOpenTicks > 300 then              -- give up after ~300 ticks
+        ServerGuideClient.pendingAutoOpen = false
+        Events.OnTick.Remove(autoOpenPoll)
     end
 end
 
---- On player creation, request the index; the auto-open fires when it arrives.
+--- On player creation, arm the auto-open and start polling for the index; the
+--- window opens when the reply arrives (unless the player disabled it).
 ServerGuideClient.OnCreatePlayer = function(playerIndex, player)
     if playerIndex ~= 0 then return end   -- only the main local player
+    ServerGuideClient.pendingAutoOpen = true
+    autoOpenTicks = 0
     ServerGuideClient.requestIndex()
+    Events.OnTick.Remove(autoOpenPoll)    -- avoid double registration
+    Events.OnTick.Add(autoOpenPoll)
 end
 
 Events.OnCreatePlayer.Add(ServerGuideClient.OnCreatePlayer)
