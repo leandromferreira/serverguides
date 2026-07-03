@@ -183,18 +183,25 @@ end
 ------------------------------------------------------------------------
 
 --- (Re)fills the list from the current tree (ServerGuideClient.tree).
+-- Category headers are clickable and expand/collapse their pages. The collapsed
+-- state lives in a static table so it survives window close/reopen in a session
+-- (default: expanded).
 function ServerGuideUI:refreshList()
     self.listBox:clear()
+    ServerGuideUI.collapsed = ServerGuideUI.collapsed or {}
     local tree = ServerGuideClient and ServerGuideClient.tree or {}
     for _, cat in ipairs(tree) do
-        -- category header (not clickable)
-        self.listBox:addItem(cat.cat, { header = true, title = cat.cat })
-        for _, item in ipairs(cat.items) do
-            self.listBox:addItem("    " .. item.title, {
-                header = false,
-                title = item.title,
-                file = item.file,
-            })
+        local isCollapsed = ServerGuideUI.collapsed[cat.cat] == true
+        -- category header (click to expand/collapse)
+        self.listBox:addItem(cat.cat, { header = true, cat = cat.cat, collapsed = isCollapsed })
+        if not isCollapsed then
+            for _, item in ipairs(cat.items) do
+                self.listBox:addItem("    " .. item.title, {
+                    header = false,
+                    title = item.title,
+                    file = item.file,
+                })
+            end
         end
     end
 end
@@ -206,7 +213,10 @@ function ServerGuideUI:doDrawItem(y, item, alt)
         self:drawRect(0, y, self:getWidth(), self.itemheight - 1, 0.3, 0.7, 0.35, 0.15)
     end
     if data.header then
-        self:drawText(item.text, 4, y + 2, 1, 0.85, 0.4, 1, UIFont.NewSmall)
+        -- expand/collapse marker + category name
+        local marker = data.collapsed and "+" or "-"
+        self:drawText(marker, 6, y + 2, 1, 0.85, 0.4, 1, UIFont.NewSmall)
+        self:drawText(item.text, 20, y + 2, 1, 0.85, 0.4, 1, UIFont.NewSmall)
     else
         self:drawText(item.text, 4, y + 2, 0.9, 0.9, 0.9, 1, UIFont.NewSmall)
     end
@@ -218,7 +228,17 @@ function ServerGuideUI:onClickList()
     if not sel then return end
     local data = sel.item
     if data.header then
-        -- clicking a header: opens nothing
+        -- clicking a header expands/collapses that category
+        ServerGuideUI.collapsed = ServerGuideUI.collapsed or {}
+        ServerGuideUI.collapsed[data.cat] = not (ServerGuideUI.collapsed[data.cat] == true)
+        self:refreshList()
+        -- keep the clicked header selected after the rebuild
+        for idx, it in ipairs(self.listBox.items) do
+            if it.item.header and it.item.cat == data.cat then
+                self.listBox.selected = idx
+                break
+            end
+        end
         return
     end
     self:showPage(data.file, data.title)
@@ -485,6 +505,9 @@ function ServerGuideUI:reselectOrFirst(prefRules)
                 return
             end
         end
+        -- current page not in the list (its category is collapsed, or it was
+        -- removed): keep showing what we have instead of jumping to page one
+        return
     end
     self:selectFirst(prefRules)
 end
