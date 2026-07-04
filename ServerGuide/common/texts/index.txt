@@ -15,6 +15,11 @@
 #   - A section named [Rules] (or [Regras]) is treated as rules automatically;
 #     OR prefix the name with * to mark it explicitly, e.g. [*Conduct].
 #     Changing the content of those pages re-opens the window once.
+#
+# DEFAULT PAGE (optional): a "home = file.txt" line before any [Section] sets the
+# page shown when the guide opens. Without it, the guide opens the first page.
+# Uncomment and point it at any page below:
+# home = rules_general.txt
 
 [Rules]
 General = rules_general.txt

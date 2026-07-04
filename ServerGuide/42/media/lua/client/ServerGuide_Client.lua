@@ -56,9 +56,11 @@ end
 
 --- Sends the full edited menu tree (staff only). The menu is tiny, so it fits a
 --- single command. The server sanitises and rewrites index.txt.
-function ServerGuideClient.editIndex(tree)
+-- `home` is the chosen default page (file path); "" clears it. Always sent as a
+-- string so the server can tell "cleared" apart from "not provided".
+function ServerGuideClient.editIndex(tree, home)
     sendClientCommand(ServerGuide.MODULE, "editIndex",
-        { tree = tree, baseVersion = ServerGuideClient.indexVersion })
+        { tree = tree, home = home or "", baseVersion = ServerGuideClient.indexVersion })
 end
 
 ------------------------------------------------------------------------
@@ -69,6 +71,8 @@ local function onIndex(args)
     ServerGuideClient.tree = args.tree or {}
     ServerGuideClient.rulesVersion = args.rulesVersion or ""
     ServerGuideClient.indexVersion = args.indexVersion or ""
+    -- default/landing page (a file path) declared by "home =" in index.txt; may be nil
+    ServerGuideClient.home = args.home
     -- only sendIndex carries canEdit (per-player); broadcasts omit it, so keep
     -- the previously known value when it isn't present
     if args.canEdit ~= nil then ServerGuideClient.canEdit = args.canEdit == true end

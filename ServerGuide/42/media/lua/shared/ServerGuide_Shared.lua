@@ -184,12 +184,16 @@ end
 --- Parses the manifest lines into a tree.
 -- @param lines  array of lines (without \n)
 -- @return tree  array of { cat=<string>, isRules=<bool>, items={ {title=,file=}, ... } }
+-- @return home  the default/landing page (a file path) declared by a top-level
+--               "home = file.txt" line (aliases: default, inicial), or nil
 -- Blank lines and lines starting with "#" are ignored.
 -- "[Section]" opens a category; "Title = file.txt" adds a page.
--- "key = value" pairs before any section are ignored (tree stays empty).
+-- A "home = file.txt" line BEFORE any section sets the default page; other
+-- top-level "key = value" pairs are ignored.
 function ServerGuide.parseIndex(lines)
     local tree = {}
     local current = nil
+    local home = nil
 
     for _, raw in ipairs(lines) do
         local line = ServerGuide.trim(raw)
@@ -202,17 +206,23 @@ function ServerGuide.parseIndex(lines)
             table.insert(tree, current)
         else
             local key, value = string.match(line, "^(.-)=(.*)$")
-            if key and current then
+            if key then
                 key = ServerGuide.trim(key)
                 value = ServerGuide.trim(value)
-                if key ~= "" and value ~= "" then
+                local lkey = string.lower(key)
+                if current == nil then
+                    -- top-level: only the "home" directive is meaningful
+                    if value ~= "" and (lkey == "home" or lkey == "default" or lkey == "inicial") then
+                        home = value
+                    end
+                elseif key ~= "" and value ~= "" then
                     table.insert(current.items, { title = key, file = value })
                 end
             end
         end
     end
 
-    return tree
+    return tree, home
 end
 
 --- Serialises a tree back into index.txt text (the inverse of parseIndex).
@@ -223,14 +233,21 @@ end
 -- is not already an implicit rules name ("rules"/"regras"), so we never write a
 -- redundant or double marker. Mirrors classifyCategory's semantics.
 -- @param tree array of { cat=, isRules=, items={ {title=,file=}, ... } }
+-- @param home optional default/landing page (file path); re-emitted as a
+--             top-level "home =" line so in-game menu edits don't drop it
 -- @return content string (lines joined by \n, no trailing newline)
-function ServerGuide.serializeIndex(tree)
+function ServerGuide.serializeIndex(tree, home)
     local out = {}
     table.insert(out, "# index.txt - gerado pelo editor do ServerGuide.")
     table.insert(out, "# Edicoes feitas no jogo sobrescrevem este arquivo;")
     table.insert(out, "# comentarios e formatacao manual nao sao preservados.")
     table.insert(out, "# [Secao] = categoria ; \"Titulo = arquivo.txt\" = pagina.")
+    table.insert(out, "# home = arquivo.txt  -> pagina aberta por padrao.")
     table.insert(out, "")
+    if home and home ~= "" then
+        table.insert(out, "home = " .. home)
+        table.insert(out, "")
+    end
 
     for _, cat in ipairs(tree) do
         local name = cat.cat or ""

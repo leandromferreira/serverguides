@@ -26,5 +26,7 @@
     "IGUI_ServerGuide_RenameCategory": "Novo nome da categoria:",
     "IGUI_ServerGuide_RenamePage": "Novo título da página:",
     "IGUI_ServerGuide_PickCategory": "Selecione uma categoria primeiro.",
-    "IGUI_ServerGuide_AutoOpen": "Abrir automaticamente quando eu entrar"
+    "IGUI_ServerGuide_AutoOpen": "Abrir automaticamente quando eu entrar",
+    "IGUI_ServerGuide_SetHome": "Definir inicial",
+    "IGUI_ServerGuide_SelectPage": "Selecione uma página primeiro."
 }

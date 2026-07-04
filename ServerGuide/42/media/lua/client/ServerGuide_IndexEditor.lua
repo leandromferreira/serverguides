@@ -102,11 +102,12 @@ function ServerGuideIndexEditor:createChildren()
     self.btnRules   = mkBtn(getText("IGUI_ServerGuide_IsRules"),     ServerGuideIndexEditor.onToggleRules, x, y1); x = x + BTN_W + SP
     self.btnRemove  = mkBtn(getText("IGUI_ServerGuide_Remove"),      ServerGuideIndexEditor.onRemove,      x, y1)
 
-    -- Row 2: order + save/close
+    -- Row 2: order + set-home + save/close
     local y2 = y1 + BTN_H + SP
     x = SP
     self.btnUp   = mkBtn(getText("IGUI_ServerGuide_MoveUp"),   ServerGuideIndexEditor.onMoveUp,   x, y2); x = x + BTN_W + SP
-    self.btnDown = mkBtn(getText("IGUI_ServerGuide_MoveDown"), ServerGuideIndexEditor.onMoveDown, x, y2)
+    self.btnDown = mkBtn(getText("IGUI_ServerGuide_MoveDown"), ServerGuideIndexEditor.onMoveDown, x, y2); x = x + BTN_W + SP
+    self.btnHome = mkBtn(getText("IGUI_ServerGuide_SetHome"),  ServerGuideIndexEditor.onSetHome,  x, y2)
 
     self.btnClose = mkBtn(getText("UI_btn_close"), ServerGuideIndexEditor.onCloseBtn,
         self.width - BTN_W - SP, y2)
@@ -135,7 +136,8 @@ function ServerGuideIndexEditor:rebuildList()
         local prefix = cat.isRules and "[*] " or ""
         self.listBox:addItem(prefix .. cat.cat, { kind = "cat", ci = ci })
         for ii, it in ipairs(cat.items) do
-            self.listBox:addItem("      " .. it.title .. "  (" .. it.file .. ")",
+            local homeMark = (self.workHome and it.file == self.workHome) and "  [home]" or ""
+            self.listBox:addItem("      " .. it.title .. "  (" .. it.file .. ")" .. homeMark,
                 { kind = "item", ci = ci, ii = ii })
         end
     end
@@ -287,12 +289,29 @@ end
 function ServerGuideIndexEditor:onMoveUp()   self:move(-1) end
 function ServerGuideIndexEditor:onMoveDown() self:move(1)  end
 
+--- Marks the selected page as the default (home) page shown when the guide
+--- opens. Clicking it again on the same page clears the home.
+function ServerGuideIndexEditor:onSetHome()
+    local d = self:selData()
+    if not d or d.kind ~= "item" then
+        self:setStatus(getText("IGUI_ServerGuide_SelectPage"), true)
+        return
+    end
+    local file = self.work[d.ci].items[d.ii].file
+    if self.workHome == file then
+        self.workHome = nil   -- toggle off
+    else
+        self.workHome = file
+    end
+    self:markDirty(); self:rebuildList()
+end
+
 ------------------------------------------------------------------------
 -- Save / close / server feedback
 ------------------------------------------------------------------------
 
 function ServerGuideIndexEditor:onSave()
-    ServerGuideClient.editIndex(self.work)
+    ServerGuideClient.editIndex(self.work, self.workHome)
     self:setStatus(getText("IGUI_ServerGuide_Saving"))
 end
 
@@ -301,6 +320,7 @@ end
 function ServerGuideIndexEditor:refreshFromTree(force)
     if self.dirty and not force then return end
     self.work = copyTree(ServerGuideClient and ServerGuideClient.tree or {})
+    self.workHome = ServerGuideClient and ServerGuideClient.home or nil
     self.dirty = false
     self:rebuildList()
 end
@@ -336,7 +356,7 @@ end
 ------------------------------------------------------------------------
 
 function ServerGuideIndexEditor:new()
-    local w, h = 480, 460
+    local w, h = 560, 460
     local x = getCore():getScreenWidth() / 2 - w / 2
     local y = getCore():getScreenHeight() / 2 - h / 2
     local o = ISCollapsableWindow.new(self, x, y, w, h)

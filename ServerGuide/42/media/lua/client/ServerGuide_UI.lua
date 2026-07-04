@@ -132,10 +132,13 @@ function ServerGuideUI:createChildren()
 
     -- "Open on join" toggle (bottom-left). Per-player, defaults ON. The window
     -- pops up every time the player joins until they untick this.
+    -- The checkbox square is as tall as the height passed to ISTickBox, so use
+    -- the small font height (not BTN_HEIGHT) and vertically center it on the
+    -- button row -- otherwise the 25px box hangs into the window's bottom border.
     local tickWid = getTextManager():MeasureStringX(UIFont.NewSmall,
         getText("IGUI_ServerGuide_AutoOpen")) + 30
-    self.autoOpenTick = ISTickBox:new(UI_BORDER_SPACING, btnY, tickWid, BTN_HEIGHT,
-        "", self, ServerGuideUI.onToggleAutoOpen)
+    self.autoOpenTick = ISTickBox:new(UI_BORDER_SPACING, btnY + (BTN_HEIGHT - FONT_HGT_SMALL) / 2,
+        tickWid, FONT_HGT_SMALL, "", self, ServerGuideUI.onToggleAutoOpen)
     self.autoOpenTick:initialise()
     self.autoOpenTick:instantiate()
     self.autoOpenTick:setAnchorsTBLR(false, true, true, false)
@@ -399,6 +402,38 @@ function ServerGuideUI:selectFirst(prefRules)
     end
 end
 
+--- Selects the page shown when the guide opens. Priority: the admin-configured
+--- home page (index.txt "home = ..."), then the rules page (if prefRules), then
+--- the first page. If the home page sits in a collapsed category, expand it so
+--- it can be shown.
+function ServerGuideUI:selectDefault(prefRules)
+    local home = ServerGuideClient and ServerGuideClient.home
+    if home and home ~= "" then
+        -- make sure the home page's category is expanded, then select it
+        local tree = ServerGuideClient and ServerGuideClient.tree or {}
+        for _, cat in ipairs(tree) do
+            for _, item in ipairs(cat.items) do
+                if item.file == home then
+                    ServerGuideUI.collapsed = ServerGuideUI.collapsed or {}
+                    if ServerGuideUI.collapsed[cat.cat] then
+                        ServerGuideUI.collapsed[cat.cat] = nil
+                        self:refreshList()
+                    end
+                    break
+                end
+            end
+        end
+        for idx, it in ipairs(self.listBox.items) do
+            if it.item.file == home then
+                self.listBox.selected = idx
+                self:onClickList()
+                return
+            end
+        end
+    end
+    self:selectFirst(prefRules)
+end
+
 ------------------------------------------------------------------------
 -- Window
 ------------------------------------------------------------------------
@@ -486,7 +521,7 @@ function ServerGuideUI.open(prefRules)
 
     if ServerGuideClient and ServerGuideClient.tree then
         -- show the cached tree immediately; the fresh reply updates it shortly
-        inst:selectFirst(prefRules)
+        inst:selectDefault(prefRules)
     end
 end
 
@@ -509,7 +544,7 @@ function ServerGuideUI:reselectOrFirst(prefRules)
         -- removed): keep showing what we have instead of jumping to page one
         return
     end
-    self:selectFirst(prefRules)
+    self:selectDefault(prefRules)
 end
 
 --- Called by the client when the index arrives (to fill the list if the window

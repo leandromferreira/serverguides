@@ -77,11 +77,12 @@ local function loadTree()
     local lines = readAllLines(ServerGuide.resolve(ServerGuide.INDEX_FILE))
     if not lines then
         print("[ServerGuide] index.txt not found in Lua/" .. ServerGuide.FOLDER .. "/")
-        return {}
+        return {}, nil
     end
 
-    local parsed = ServerGuide.parseIndex(lines)
+    local parsed, home = ServerGuide.parseIndex(lines)
     local tree = {}
+    local kept = {}   -- file -> true, for validating the home page
     for _, cat in ipairs(parsed) do
         local outCat = { cat = cat.cat, isRules = cat.isRules, items = {} }
         for _, item in ipairs(cat.items) do
@@ -93,11 +94,20 @@ local function loadTree()
                 print("[ServerGuide] item skipped (missing file): " .. tostring(item.file))
             else
                 table.insert(outCat.items, { title = item.title, file = item.file })
+                kept[item.file] = true
             end
         end
         table.insert(tree, outCat)
     end
-    return tree
+
+    -- the home page must be a real, kept page; otherwise ignore it
+    if home and not kept[home] then
+        if home ~= "" then
+            print("[ServerGuide] home page ignored (not a listed page): " .. tostring(home))
+        end
+        home = nil
+    end
+    return tree, home
 end
 
 --- Rules version = hash of the content of every file in the categories marked
@@ -146,11 +156,12 @@ end
 --- Builds the payload sent for the "index" command (tree for viewing + the two
 --- version hashes used for the rules auto-open and menu-edit concurrency).
 local function buildIndexPayload()
-    local tree = loadTree()
+    local tree, home = loadTree()
     return {
         rulesVersion = computeRulesVersion(tree),
         indexVersion = computeIndexVersion(),
         tree = tree,
+        home = home,
     }
 end
 
@@ -383,8 +394,29 @@ function ServerGuideServer.onEditIndex(player, args)
         end
     end
 
+    -- Resolve the "home" (default page) to write. The editor sends it as a
+    -- string ("" = clear); an absent field means an older client, so we preserve
+    -- whatever is already on disk. A sent home is only kept if it's a real page
+    -- in the sanitised tree.
+    local newHome
+    if type(args.home) == "string" then
+        local h = ServerGuide.trim(args.home)
+        newHome = nil
+        if h ~= "" then
+            for _, cat in ipairs(clean) do
+                for _, item in ipairs(cat.items) do
+                    if item.file == h then newHome = h break end
+                end
+                if newHome then break end
+            end
+        end
+    else
+        local _, curHome = ServerGuide.parseIndex(readAllLines(ServerGuide.resolve(ServerGuide.INDEX_FILE)) or {})
+        newHome = curHome
+    end
+
     local wok, wreason = writeContent(ServerGuide.resolve(ServerGuide.INDEX_FILE),
-        ServerGuide.serializeIndex(clean))
+        ServerGuide.serializeIndex(clean, newHome))
     if not wok then
         sendEditResult(player, { ok = false, op = "editIndex", reason = wreason })
         return
