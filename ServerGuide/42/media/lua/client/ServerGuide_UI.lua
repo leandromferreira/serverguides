@@ -21,6 +21,8 @@ local BTN_HEIGHT = 25
 local LIST_WIDTH = 200
 local BODY_WIDTH = 560
 local BOTTOM_PANEL_HEIGHT = BTN_HEIGHT + UI_BORDER_SPACING * 2
+-- extra scroll room so the last content line is fully reachable (see paginateBody)
+local BODY_SCROLL_PAD = FONT_HGT_MEDIUM + UI_BORDER_SPACING
 
 ------------------------------------------------------------------------
 -- Construction
@@ -265,7 +267,16 @@ function ServerGuideUI:showPage(file, title)
             ServerGuideClient.requestPage(file)
         end
     end
+    self:paginateBody()
+end
+
+--- Paginates the content panel and pads its scroll height. ISRichTextPanel's
+--- paginate sets the scroll extent to the TOP of the last line (marginTop + y +
+--- marginBottom), so the last line is otherwise unreachable/clipped; a fixed pad
+--- makes it fully scrollable without altering the text.
+function ServerGuideUI:paginateBody()
     self.body:paginate()
+    self.body:setScrollHeight(self.body:getScrollHeight() + BODY_SCROLL_PAD)
     self.body:setYScroll(0)
 end
 
@@ -274,8 +285,7 @@ end
 function ServerGuideUI:onPageReady(file, content)
     if self.currentFile == file then
         self.body.text = content
-        self.body:paginate()
-        self.body:setYScroll(0)
+        self:paginateBody()
         -- a staff member asked to edit before the page had loaded
         if self.pendingEdit then
             self.pendingEdit = false

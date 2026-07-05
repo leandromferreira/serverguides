@@ -30,14 +30,30 @@ REGRAS ABSOLUTAS
 - Toda inline-cor deve fechar: abra com <PUSHRGB:...> e feche com <POPRGB>.
 - O texto começa em <LEFT> <SIZE:medium> (corpo padrão).
 
+ESPAÇAMENTO COM TAGS DE COR (crítico — o painel tem duas armadilhas)
+- (1) Texto COLADO imediatamente antes de uma tag é DESCARTADO pelo painel.
+  Ex.: "azul<POPRGB>" faz a palavra "azul" SUMIR. Sempre ponha um espaço antes de
+  QUALQUER tag: escreva "azul <POPRGB>", nunca "azul<POPRGB>".
+- (2) Um espaço normal ao lado de uma troca de cor NÃO é renderizado (a tag
+  quebra a linha em pedaços e a lacuna se perde) -> as palavras ficam coladas
+  ("opcaoGerar"). Para manter o espaço visível, use a tag <SPACE>.
+- PADRÃO para colorir uma palavra no meio da frase:
+    antes <SPACE><PUSHRGB:1,0.82,0.3>colorida <POPRGB><SPACE>depois
+  (o espaço ANTES vira <SPACE> antes do PUSHRGB; há um espaço ANTES do POPRGB
+  para não comer a palavra; o espaço DEPOIS vira <SPACE> depois do POPRGB.)
+- Se logo após a cor vier PONTUAÇÃO colada (":", ".", ","), NÃO use <SPACE>:
+    colorida <POPRGB>: resto     ->   renderiza "colorida: resto"
+
 MAPA DE CONVERSÃO
 - # Título (h1)        -> <LINE><CENTRE><SIZE:large> TÍTULO <LINE><LINE><LEFT><SIZE:medium>
 - ## Título (h2)       -> <LINE><SIZE:large><RGB:1,0.85,0.4> TÍTULO <POPRGB><SIZE:medium><LINE>
    (use <PUSHRGB:1,0.85,0.4> antes e <POPRGB> depois para fechar a cor)
 - ### Título (h3)      -> <LINE><RGB:1,0.85,0.4>TÍTULO<POPRGB><LINE>  (use PUSH/POP)
-- **negrito**          -> <PUSHRGB:1,0.82,0.3>texto<POPRGB>
-- *itálico* / _it_     -> <PUSHRGB:0.7,0.85,1>texto<POPRGB>
-- `código inline`      -> <PUSHRGB:0.6,1,0.6>texto<POPRGB>
+- **negrito**          -> <SPACE><PUSHRGB:1,0.82,0.3>texto <POPRGB><SPACE>
+- *itálico* / _it_     -> <SPACE><PUSHRGB:0.7,0.85,1>texto <POPRGB><SPACE>
+- `código inline`      -> <SPACE><PUSHRGB:0.6,1,0.6>texto <POPRGB><SPACE>
+   (nos três acima: aplique a seção ESPAÇAMENTO — <SPACE> só onde havia espaço;
+    se antes/depois houver início de linha ou pontuação colada, omita o <SPACE>)
 - bloco de ``` ```      -> cada linha com <SETX:20> e <PUSHRGB:0.6,1,0.6>...<POPRGB>, uma por <LINE>
 - - item  /  * item    -> <INDENT:20>* item<LINE> ... ao terminar a lista: <INDENT:0>
 - 1. item (ordenada)   -> <INDENT:20>1. item<LINE> ... no fim: <INDENT:0>
@@ -65,7 +81,9 @@ Seja **justo**. Veja o [mapa](http://site).
 - Avise no chat
 
 Saída:
-<LINE><CENTRE><SIZE:large> Regras do PvP <LINE><LINE><LEFT><SIZE:medium>Seja <PUSHRGB:1,0.82,0.3>justo<POPRGB>. Veja o mapa (http://site). <LINE><INDENT:20>* Não KOS<LINE>* Avise no chat<LINE><INDENT:0>
+<LINE><CENTRE><SIZE:large> Regras do PvP <LINE><LINE><LEFT><SIZE:medium>Seja <SPACE><PUSHRGB:1,0.82,0.3>justo <POPRGB>. Veja o mapa (http://site). <LINE><INDENT:20>* Não KOS<LINE>* Avise no chat<LINE><INDENT:0>
+(repare em "justo": <SPACE> antes do PUSHRGB mantém o espaço; o espaço antes do
+ <POPRGB> impede a palavra sumir; após o POPRGB vem "." colado, então SEM <SPACE>.)
 
 Agora converta o texto a seguir:
 ---

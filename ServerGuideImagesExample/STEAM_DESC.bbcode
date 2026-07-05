@@ -5,13 +5,14 @@
 [i]Requires the [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3743488819]Server Guide[/url][/b] mod.[/i]
 
 [hr][/hr]
-[h2]Why a separate mod?[/h2]
-Server Guide streams your guide [b]text[/b] live from the server, but [b]images cannot[/b] travel that way:
+[h2]Why images MUST live in a mod[/h2]
+Server Guide streams your guide [b]text[/b] live from the server, so you can edit rules and guides on the fly. [b]Images do not work that way[/b] — and this is a hard limit of the game, not the mod:
 [list]
-[*]In multiplayer only text goes over the network — image bytes never reach the client.
-[*]The game only loads images that are in a [b]mod's [i]media/[/i] folder[/b] (the texture map), and only those are synced to clients.
+[*]Project Zomboid only shows images that were scanned into its [b]texture map at startup[/b], and it scans the [b][i]media/[/i] folders of installed mods[/b] — nothing else. There is no "live" image loading.
+[*]The [b]<IMAGE>[/b] tag is resolved on the machine that displays it (the client), by texture [b]name[/b], from that startup map.
+[*]A PNG dropped into the server's live text folder ([i]~/Zomboid/Lua/ServerGuide/[/i]) is never in that map — and in multiplayer its bytes never travel to the client anyway.
 [/list]
-So images live in a mod. This is that mod — a ready-to-copy shell.
+[b]Conclusion:[/b] every image you want in a guide has to be packaged inside a mod's [i]media/[/i] folder, and — for multiplayer — that mod has to be [b]published on the Workshop[/b] so each client downloads it. This template is that mod: copy it, add your PNGs, publish it.
 
 [hr][/hr]
 [h2]How to use[/h2]
@@ -22,6 +23,32 @@ So images live in a mod. This is that mod — a ready-to-copy shell.
 [/olist]
 [code]<IMAGECENTRE:media/ui/guias/map.png,512,512>
 <IMAGE:media/ui/guias/logo.png>[/code]
+In singleplayer / a local host, that's all — a local mod is enough. For a dedicated / multiplayer server, publish your copy to the Workshop (next).
+
+[hr][/hr]
+[h2]Publish your image mod to the Workshop[/h2]
+Clients only get your images if the mod is on the Workshop and listed on the server. Do this once per image mod (and again to update it):
+[olist]
+[*][b]Lay out the Workshop folder.[/b] Put your renamed copy inside a Workshop item folder:
+[code]~/Zomboid/Workshop/YourItemName/
+  workshop.txt
+  preview.png
+  Contents/
+    mods/
+      YourModId/        <- your copy: mod.info + 42/media/...[/code]
+[*][b]Write [i]workshop.txt[/i][/b] (in [i]YourItemName/[/i]) with the listing metadata, e.g.:
+[code]version=1
+id=
+title=My Server Images
+description=Images for my server's guides.
+tags=Build 42;Multiplayer
+visibility=public[/code]
+Leave [i]id=[/i] empty for a brand-new item — Steam fills it on first upload. Add a [i]preview.png[/i] next to it (the thumbnail).
+[*][b]Upload from in-game.[/b] Launch Project Zomboid → main menu → [b]Workshop[/b] → [b]Create and Update Item[/b] → pick [i]YourItemName[/i] → review title/description/preview → [b]Submit[/b].
+[*][b]Make it Public.[/b] Open the new item's Workshop page and set visibility to [b]Public[/b] — dedicated servers download anonymously and [b]cannot[/b] fetch Hidden / Friends-only items (the download fails and can crash the server).
+[*][b]List it on the server.[/b] Copy the item's [b]ID[/b] (the number in its Workshop URL) into [b]WorkshopItems=[/b], and your mod's [i]id[/i] into [b]Mods=[/b], in the server config. Restart the server.
+[/olist]
+[b]Updating later:[/b] change your files, run [b]Create and Update Item[/b] on the same item again (keep the [i]id=[/i] that Steam wrote into workshop.txt).
 
 [hr][/hr]
 [h2]Path rules (important)[/h2]
@@ -42,7 +69,7 @@ There is no hard pixel limit (it's bounded by the GPU's max texture size, normal
 
 [hr][/hr]
 [h2]Multiplayer[/h2]
-For images to reach players in MP, your copy of this mod must be [b]published on the Workshop[/b] and listed in the server's WorkshopItems. Local mods (in the server's [i]~/Zomboid/mods[/i]) are not sent to clients. In singleplayer / local host, a local mod is enough.
+Reminder: local mods (in the server's [i]~/Zomboid/mods[/i]) are [b]not[/b] sent to clients — for images to reach players in MP your copy must be on the Workshop and listed in [b]WorkshopItems=[/b] (see "Publish your image mod to the Workshop" above). Singleplayer / local host needs no publishing.
 
 [hr][/hr]
 [h2]Languages[/h2]

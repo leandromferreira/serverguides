@@ -54,6 +54,12 @@ Your staff never has to FTP into the server to fix a typo. Open the guide window
 [*][b]<IMAGE:name>[/b] / [b]<IMAGECENTRE:name,width,height>[/b] — show an image (by media/ name)
 [/list]
 
+[b]Spacing around inline colors[/b] — the rich-text panel has two quirks to know when coloring a word mid-sentence:
+[list]
+[*][b]Put a space before a closing tag[/b] — text glued directly before a tag is dropped, so write [b]word <POPRGB>[/b], never [b]word<POPRGB>[/b] (otherwise "word" disappears).
+[*][b]Use <SPACE> next to a color change[/b] — a normal space beside a color tag isn't rendered (words end up glued, e.g. "opcaoGerar"). Insert [b]<SPACE>[/b] to force the gap. Pattern: [b]before <SPACE><PUSHRGB:1,0.82,0.3>colored <POPRGB><SPACE>after[/b] (skip the trailing <SPACE> if punctuation like ":" follows).
+[/list]
+
 [hr][/hr]
 [h2]Using images[/h2]
 The text is streamed live, but [b]images are not[/b] — an image must be packed in a loaded mod's [i]media/[/i] folder (that's the only place the game scans into its texture map and syncs to clients). You then reference it [b]by name[/b], starting from [i]media/[/i] (the mod name is NOT part of the path):
