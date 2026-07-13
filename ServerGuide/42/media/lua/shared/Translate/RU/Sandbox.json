@@ -1,0 +1,6 @@
+{
+    "Sandbox_ServerGuide": "Информация о сервере",
+
+    "Sandbox_ServerGuide_EditAccessLevels": "Уровни доступа, разрешенные для редактирования",
+    "Sandbox_ServerGuide_EditAccessLevels_tooltip": "Какие уровни доступа позволяют редактировать руководства и меню в игре, разделенные символом \";\" (например, admin;moderator;overseer;gm). Оставьте пустым, чтобы не разрешать редактирование. Хост (одиночная игра/кооператив) всегда может редактировать. По умолчанию: admin;moderator;overseer;gm"
+}
