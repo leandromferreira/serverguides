@@ -66,7 +66,7 @@ MAPA DE CONVERSÃO
 - tabela Markdown      -> converta cada linha em texto com colunas separadas por "  -  "
    e use <SETX:n> para alinhar se fizer sentido; cabeçalho em <PUSHRGB:1,0.85,0.4>...<POPRGB>
 - texto normal         -> mantém, com <LINE> nas quebras
-
+- quanto tiver uma imagem use o caminho padrao media/ui/refugioz/<nome da imagem>.png,511,288><LINE>
 CUIDADOS
 - Não deixe nenhum caractere de Markdown (#, *, _, `, >, |, -) como marcação residual.
 - Não acumule cores: todo PUSHRGB tem um POPRGB correspondente.

@@ -159,8 +159,10 @@ ServerGuideClient.pendingAutoOpen = false
 
 --- Is the "open on join" behaviour enabled for this player? Default: ON.
 -- Stored per character in the player's ModData (server-authoritative in MP).
-function ServerGuideClient.isAutoOpenEnabled()
-    local player = getPlayer()
+-- @param player optional; falls back to the local player (used at join time,
+--               where passing the just-created player is more reliable).
+function ServerGuideClient.isAutoOpenEnabled(player)
+    player = player or getPlayer()
     if not player then return true end
     return player:getModData().SG_autoOpen ~= false
 end
@@ -179,36 +181,53 @@ function ServerGuideClient.tryAutoOpen()
     if not ServerGuideClient.pendingAutoOpen then return end
     ServerGuideClient.pendingAutoOpen = false
     if not ServerGuideClient.isAutoOpenEnabled() then return end
-    ServerGuideUI.openRules()
+    -- we already have the index (that's what triggered this) -> open without a
+    -- second requestIndex, so mass joins don't double the tree traffic
+    ServerGuideUI.autoOpen()
 end
 
 --- Polls for the index until the reply arrives (which runs tryAutoOpen and
 --- clears pendingAutoOpen). On MP join, OnCreatePlayer can fire before the
 --- client/server command channel is ready, so the first requestIndex may be
---- dropped and no reply ever comes -- we re-request periodically for a while.
+--- dropped and no reply ever comes -- we re-request occasionally for a while.
+---
+--- Kept deliberately gentle for MASS JOINS: the first request is jittered across
+--- a couple seconds (so N players don't hit the server on the same tick) and
+--- retries are spaced ~2s apart. Combined with the server-side payload cache,
+--- this avoids a join-time feedback loop (busy server -> slow reply -> more
+--- re-requests -> more load).
+local AUTO_OPEN_RETRY_TICKS  = 120   -- ~2s between attempts while waiting
+local AUTO_OPEN_GIVEUP_TICKS = 720   -- ~12s total, then stop trying
 local autoOpenTicks = 0
+local autoOpenNextAt = 0             -- next tick at which to (re)send the request
+
 local function autoOpenPoll()
     if not ServerGuideClient.pendingAutoOpen then
         Events.OnTick.Remove(autoOpenPoll)   -- opened (or disabled): done
         return
     end
     autoOpenTicks = autoOpenTicks + 1
-    if autoOpenTicks % 30 == 1 then          -- (re)request roughly every 30 ticks
+    if autoOpenTicks >= autoOpenNextAt then
         ServerGuideClient.requestIndex()
+        autoOpenNextAt = autoOpenTicks + AUTO_OPEN_RETRY_TICKS
     end
-    if autoOpenTicks > 300 then              -- give up after ~300 ticks
+    if autoOpenTicks > AUTO_OPEN_GIVEUP_TICKS then
         ServerGuideClient.pendingAutoOpen = false
         Events.OnTick.Remove(autoOpenPoll)
     end
 end
 
 --- On player creation, arm the auto-open and start polling for the index; the
---- window opens when the reply arrives (unless the player disabled it).
+--- window opens when the reply arrives (unless the player disabled it). The very
+--- first request is jittered to spread simultaneous joins.
 ServerGuideClient.OnCreatePlayer = function(playerIndex, player)
     if playerIndex ~= 0 then return end   -- only the main local player
+    -- Opted out? Don't touch the network at join at all -- no requestIndex, no
+    -- poll. The index is fetched only when the player opens the guide manually.
+    if not ServerGuideClient.isAutoOpenEnabled(player) then return end
     ServerGuideClient.pendingAutoOpen = true
     autoOpenTicks = 0
-    ServerGuideClient.requestIndex()
+    autoOpenNextAt = ZombRand and ZombRand(0, AUTO_OPEN_RETRY_TICKS) or 0
     Events.OnTick.Remove(autoOpenPoll)    -- avoid double registration
     Events.OnTick.Add(autoOpenPoll)
 end

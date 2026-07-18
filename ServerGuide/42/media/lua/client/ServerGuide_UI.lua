@@ -512,8 +512,11 @@ end
 --- the tree AND the per-player canEdit flag are current -- the player's access
 --- level may have changed since the last open (e.g. admin granted/revoked), and
 --- canEdit is only refreshed by a sendIndex reply, never by broadcasts.
--- @param prefRules if true, opens straight on the first rules page
-function ServerGuideUI.open(prefRules)
+-- @param prefRules   if true, opens straight on the first rules page
+-- @param skipRequest if true, don't re-request the index (we already have a
+--                    fresh one -- used by the join auto-open to avoid a second
+--                    full-tree send per player during mass joins)
+function ServerGuideUI.open(prefRules, skipRequest)
     if isServer() then return end
     if not ServerGuideUI.instance then
         ServerGuideUI.instance = ServerGuideUI:new()
@@ -525,18 +528,26 @@ function ServerGuideUI.open(prefRules)
     inst:bringToTop()
     inst:refreshList()
 
-    -- always refresh from the server (cheap; index is tiny)
-    inst.pendingRulesPref = prefRules
-    if ServerGuideClient then ServerGuideClient.requestIndex() end
+    if not skipRequest then
+        -- refresh from the server (also re-checks the per-player canEdit flag)
+        inst.pendingRulesPref = prefRules
+        if ServerGuideClient then ServerGuideClient.requestIndex() end
+    end
 
     if ServerGuideClient and ServerGuideClient.tree then
-        -- show the cached tree immediately; the fresh reply updates it shortly
+        -- show the cached tree immediately; any fresh reply updates it shortly
         inst:selectDefault(prefRules)
     end
 end
 
 function ServerGuideUI.openRules()
     ServerGuideUI.open(true)
+end
+
+--- Auto-open at join: the index was just received, so open using the current
+--- tree WITHOUT another requestIndex (halves the per-join index traffic).
+function ServerGuideUI.autoOpen()
+    ServerGuideUI.open(true, true)
 end
 
 --- Keeps the player on the page they were reading after a live refresh (e.g. an

@@ -56,6 +56,21 @@ local function readContent(luaRelPath)
     return table.concat(parts, "\n")
 end
 
+-- Server-side cache of the built index payload. Building it scans every page
+-- file (existence check + rules hashing), so without this the auto-open poll and
+-- page requests would re-scan dozens of files per second on join. That burst of
+-- rapid file opens also produced spurious "[ServerGuide] item skipped (missing
+-- file)" logs when some opens transiently failed under load (the files are fine,
+-- which is why the guide still shows everything). A short TTL absorbs the burst;
+-- any write (edit) invalidates the cache so changes show immediately.
+local indexPayloadCache = nil
+local indexPayloadAt = 0
+local INDEX_PAYLOAD_TTL_MS = 1500
+
+local function invalidateIndexCache()
+    indexPayloadCache = nil
+end
+
 --- Writes content to a file under ~/Zomboid/Lua/ (truncate + overwrite, parent
 --- dirs auto-created). Same write pattern as the seeder. Returns true, or nil+reason.
 local function writeContent(luaRelPath, content)
@@ -63,6 +78,7 @@ local function writeContent(luaRelPath, content)
     if not writer then return nil, "write failed" end
     writer:write(content)
     writer:close()
+    invalidateIndexCache()   -- content changed: next index build must be fresh
     return true
 end
 
@@ -165,15 +181,34 @@ local function buildIndexPayload()
     }
 end
 
+--- Cached accessor for the index payload. Rebuilds at most once per TTL (or after
+--- an edit invalidates the cache), so a burst of requestIndex/requestPage reuses
+--- one file scan instead of re-scanning every page file per command.
+local function getIndexPayload()
+    local now = getTimestampMs and getTimestampMs() or nil
+    if now and indexPayloadCache and (now - indexPayloadAt) < INDEX_PAYLOAD_TTL_MS then
+        return indexPayloadCache
+    end
+    indexPayloadCache = buildIndexPayload()
+    indexPayloadAt = now or 0
+    return indexPayloadCache
+end
+
 --- Answers "index" to the requesting player. Includes a per-player `canEdit`
 --- flag (authoritative) so the client shows the edit buttons only to those the
 --- SERVER actually allows -- the client can't reliably read its own access level
 --- in MP. broadcastIndex omits canEdit (it's not per-player), so each client
 --- keeps the value from its own request.
 function ServerGuideServer.sendIndex(player)
-    local payload = buildIndexPayload()
-    payload.canEdit = ServerGuide.isStaff(player)
-    sendServerCommand(player, ServerGuide.MODULE, "index", payload)
+    local base = getIndexPayload()
+    -- build a per-player wrapper so we never write canEdit into the shared cache
+    sendServerCommand(player, ServerGuide.MODULE, "index", {
+        rulesVersion = base.rulesVersion,
+        indexVersion = base.indexVersion,
+        tree = base.tree,
+        home = base.home,
+        canEdit = ServerGuide.isStaff(player),
+    })
 end
 
 --- Pushes a fresh "index" to everyone after an edit. In MP the no-player form
@@ -182,7 +217,7 @@ end
 --- the index on editResult (see client), so its own refresh never depends on
 --- broadcast self-delivery.
 function ServerGuideServer.broadcastIndex()
-    local payload = buildIndexPayload()
+    local payload = getIndexPayload()
     if isServer() then
         sendServerCommand(ServerGuide.MODULE, "index", payload)
     elseif ServerGuideClient and ServerGuideClient.OnServerCommand then
@@ -200,7 +235,8 @@ function ServerGuideServer.sendPage(player, file)
     end
 
     -- Make sure the file is declared in the index (do not serve arbitrary files).
-    local tree = loadTree()
+    -- Uses the cached tree so a page request doesn't re-scan every page file.
+    local tree = getIndexPayload().tree
     local declared = false
     for _, cat in ipairs(tree) do
         for _, item in ipairs(cat.items) do
