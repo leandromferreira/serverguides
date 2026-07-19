@@ -1,6 +1,3 @@
-[h1]Server Guide[/h1]
-
-author=leozimmelo
 [b]Publish your server's guides and rules, read in-game in a clean windowed viewer. Edit them live — straight from the pause menu, no relog, no file uploads.[/b]
 
 Your rules and guides stop being a Discord link nobody opens and become a first-class, in-game window with a side menu and formatted text. Content lives in one folder on the server and is [b]streamed live[/b] to players: edit it and everyone sees the new version the next time they open the window. Built for dedicated / multiplayer servers — the client never touches the disk, it only receives text over the network.
@@ -53,12 +50,7 @@ Your staff never has to FTP into the server to fix a typo. Open the guide window
 [*][b]<SPACE>[/b] — a space
 [*][b]<IMAGE:name>[/b] / [b]<IMAGECENTRE:name,width,height>[/b] — show an image (by media/ name)
 [/list]
-
-[b]Spacing around inline colors[/b] — the rich-text panel has two quirks to know when coloring a word mid-sentence:
-[list]
-[*][b]Put a space before a closing tag[/b] — text glued directly before a tag is dropped, so write [b]word <POPRGB>[/b], never [b]word<POPRGB>[/b] (otherwise "word" disappears).
-[*][b]Use <SPACE> next to a color change[/b] — a normal space beside a color tag isn't rendered (words end up glued, e.g. "opcaoGerar"). Insert [b]<SPACE>[/b] to force the gap. Pattern: [b]before <SPACE><PUSHRGB:1,0.82,0.3>colored <POPRGB><SPACE>after[/b] (skip the trailing <SPACE> if punctuation like ":" follows).
-[/list]
+[i]Tip: when coloring a word mid-sentence, put a space before the closing tag and use <SPACE> around color changes, e.g. [b]before <SPACE><PUSHRGB:1,0.82,0.3>colored <POPRGB><SPACE>after[/b] — otherwise words get dropped or glued.[/i]
 
 [hr][/hr]
 [h2]Using images[/h2]
@@ -69,12 +61,7 @@ The text is streamed live, but [b]images are not[/b] — an image must be packed
 [/list]
 A demo image ships with this mod. To add [b]your own[/b] images without editing this mod, use the companion mod [b][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3743487241]ServerGuide Images Example[/url][/b] as a template. In multiplayer that image mod must be on the Workshop (local mods don't sync to clients).
 
-[b]Image size[/b] — there is no hard pixel limit (it's bounded by the GPU's max texture size, normally well above 4096px), but for performance:
-[list]
-[*]Use [b]power-of-two[/b] dimensions (256, 512, 1024…). The engine pads any other size up to the next power of two in video memory, so a 513px image costs as much as 1024px.
-[*]The image is scaled to the [b]width,height in <IMAGECENTRE:…,w,h>[/b] — don't ship a file much larger than you actually display.
-[*]Keep dimensions at/under ~2048px to be safe on older GPUs, and keep the file small: every client downloads the image mod.
-[/list]
+[b]Image size[/b] — prefer [b]power-of-two[/b] dimensions (256, 512, 1024…) at/under ~2048px, and keep the file small (every client downloads the image mod). The image is scaled to the [b]w,h[/b] you pass in [b]<IMAGECENTRE:…,w,h>[/b].
 
 [hr][/hr]
 [h2]Setup[/h2]
