@@ -1,6 +1,12 @@
 {
     "Sandbox_ServerGuide": "Server Guide",
 
+    "Sandbox_ServerGuide_AutoOpen": "Auto-open the guide on join",
+    "Sandbox_ServerGuide_AutoOpen_tooltip": "If enabled, the guide opens automatically when a player joins (players can still opt out individually if allowed below). If disabled, it never opens on join -- players only open it from the pause menu (Esc). Default: enabled",
+
+    "Sandbox_ServerGuide_AllowOptOut": "Let players disable auto-open",
+    "Sandbox_ServerGuide_AllowOptOut_tooltip": "If enabled, each player gets a checkbox to turn off the auto-open for themselves. If disabled, the checkbox is hidden and the guide always auto-opens on join (only applies when auto-open above is enabled). Default: enabled",
+
     "Sandbox_ServerGuide_EditAccessLevels": "Access levels allowed to edit",
     "Sandbox_ServerGuide_EditAccessLevels_tooltip": "Which access levels may edit guides and the menu in-game, separated by \";\" (e.g. admin;moderator;overseer;gm). Leave empty to allow none. The host (SP/co-op) can always edit. Default: admin;moderator;overseer;gm"
 }

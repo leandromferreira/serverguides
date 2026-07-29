@@ -175,12 +175,29 @@ function ServerGuideClient.setAutoOpenEnabled(enabled)
     player:transmitModData()   -- persists on the server (MP); harmless in SP
 end
 
---- Opens the window automatically on join, unless the player disabled it.
+--- Should the guide auto-open on join for this player? Combines both sandbox
+-- options with the player's own preference:
+--   * server AutoOpen off  -> never (guide reachable only from the pause menu);
+--   * opt-out not allowed  -> always (player preference is ignored);
+--   * otherwise            -> follow the player's per-character preference.
+function ServerGuideClient.shouldAutoOpen(player)
+    if not ServerGuide.serverAutoOpenEnabled() then return false end
+    if not ServerGuide.playerOptOutAllowed() then return true end
+    return ServerGuideClient.isAutoOpenEnabled(player)
+end
+
+--- Is the per-player "open on join" checkbox meaningful right now? Only when the
+--- server allows auto-open AND lets players opt out. Used to show/hide it.
+function ServerGuideClient.optOutCheckboxVisible()
+    return ServerGuide.serverAutoOpenEnabled() and ServerGuide.playerOptOutAllowed()
+end
+
+--- Opens the window automatically on join, subject to shouldAutoOpen().
 -- Guarded by pendingAutoOpen so later index refreshes don't reopen it.
 function ServerGuideClient.tryAutoOpen()
     if not ServerGuideClient.pendingAutoOpen then return end
     ServerGuideClient.pendingAutoOpen = false
-    if not ServerGuideClient.isAutoOpenEnabled() then return end
+    if not ServerGuideClient.shouldAutoOpen() then return end
     -- we already have the index (that's what triggered this) -> open without a
     -- second requestIndex, so mass joins don't double the tree traffic
     ServerGuideUI.autoOpen()
@@ -222,9 +239,10 @@ end
 --- first request is jittered to spread simultaneous joins.
 ServerGuideClient.OnCreatePlayer = function(playerIndex, player)
     if playerIndex ~= 0 then return end   -- only the main local player
-    -- Opted out? Don't touch the network at join at all -- no requestIndex, no
-    -- poll. The index is fetched only when the player opens the guide manually.
-    if not ServerGuideClient.isAutoOpenEnabled(player) then return end
+    -- Won't auto-open (server disabled it, or this player opted out)? Then don't
+    -- touch the network at join at all -- no requestIndex, no poll. The index is
+    -- fetched only when the player opens the guide manually (Esc menu).
+    if not ServerGuideClient.shouldAutoOpen(player) then return end
     ServerGuideClient.pendingAutoOpen = true
     autoOpenTicks = 0
     autoOpenNextAt = ZombRand and ZombRand(0, AUTO_OPEN_RETRY_TICKS) or 0

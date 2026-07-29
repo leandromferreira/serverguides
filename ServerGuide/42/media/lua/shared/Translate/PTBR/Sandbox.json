@@ -1,6 +1,12 @@
 {
     "Sandbox_ServerGuide": "Guias do Servidor",
 
+    "Sandbox_ServerGuide_AutoOpen": "Abrir o guia automaticamente ao entrar",
+    "Sandbox_ServerGuide_AutoOpen_tooltip": "Se ativado, o guia abre sozinho quando o jogador entra (cada jogador ainda pode desativar pra si, se permitido abaixo). Se desativado, nunca abre no join -- o jogador só abre pelo menu de pausa (Esc). Padrão: ativado",
+
+    "Sandbox_ServerGuide_AllowOptOut": "Deixar o jogador desativar o auto-open",
+    "Sandbox_ServerGuide_AllowOptOut_tooltip": "Se ativado, cada jogador tem um checkbox para desligar o auto-open pra si. Se desativado, o checkbox some e o guia sempre abre no join (só vale quando o auto-open acima está ativado). Padrão: ativado",
+
     "Sandbox_ServerGuide_EditAccessLevels": "Níveis de acesso que podem editar",
     "Sandbox_ServerGuide_EditAccessLevels_tooltip": "Quais níveis de acesso podem editar os guias e o menu dentro do jogo, separados por \";\" (ex.: admin;moderator;overseer;gm). Deixe vazio para não permitir ninguém. O host (SP/coop) sempre pode editar. Padrão: admin;moderator;overseer;gm"
 }

@@ -1,5 +1,23 @@
 VERSION = 1,
 
+option ServerGuide.AutoOpen
+{
+    type = boolean,
+    default = true,
+    page = ServerGuide,
+    translation = ServerGuide_AutoOpen,
+    tooltip = ServerGuide_AutoOpen_tooltip,
+}
+
+option ServerGuide.AllowOptOut
+{
+    type = boolean,
+    default = true,
+    page = ServerGuide,
+    translation = ServerGuide_AllowOptOut,
+    tooltip = ServerGuide_AllowOptOut_tooltip,
+}
+
 option ServerGuide.EditAccessLevels
 {
     type = string,

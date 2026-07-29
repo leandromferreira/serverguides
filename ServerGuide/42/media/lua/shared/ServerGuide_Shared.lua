@@ -56,6 +56,21 @@ function ServerGuide.editLevelSet()
     return set
 end
 
+--- Sandbox master switch: does the guide auto-open on join at all? Default true.
+-- When false, nobody auto-opens -- the guide is only reachable from the pause menu.
+function ServerGuide.serverAutoOpenEnabled()
+    local v = SandboxVars and SandboxVars.ServerGuide and SandboxVars.ServerGuide.AutoOpen
+    return v ~= false   -- nil (option unavailable) -> default enabled
+end
+
+--- Sandbox option: may players individually disable the auto-open? Default true.
+-- When false, the per-player checkbox is hidden and auto-open always fires
+-- (as long as serverAutoOpenEnabled() is true).
+function ServerGuide.playerOptOutAllowed()
+    local v = SandboxVars and SandboxVars.ServerGuide and SandboxVars.ServerGuide.AllowOptOut
+    return v ~= false
+end
+
 --- Is editing enabled for this access level by the sandbox option?
 function ServerGuide.levelCanEdit(lvl)
     if not lvl or lvl == "" then return false end

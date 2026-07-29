@@ -148,6 +148,9 @@ function ServerGuideUI:createChildren()
     self.autoOpenTick:addOption(getText("IGUI_ServerGuide_AutoOpen"), nil)
     self.autoOpenTick:setSelected(1,
         ServerGuideClient and ServerGuideClient.isAutoOpenEnabled() or false)
+    -- only show it when the server allows auto-open AND lets players opt out
+    self.autoOpenTick:setVisible(
+        ServerGuideClient and ServerGuideClient.optOutCheckboxVisible() or false)
     self:addChild(self.autoOpenTick)
 
     -- Status/feedback line, to the right of the toggle.
