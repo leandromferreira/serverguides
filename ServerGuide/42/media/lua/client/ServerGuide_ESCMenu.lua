@@ -21,6 +21,18 @@
 
 if isServer() then return end
 
+--- Returns the "quit to desktop" ISLabel widget across builds. B42.20 renamed
+--- the instance field from `quitToDesktop` to `quitToDesktopOption` and reused
+--- `quitToDesktop` as a method name on MainScreen -- so on 42.20,
+--- self.quitToDesktop resolves (via the class __index) to that FUNCTION, not
+--- the widget, and indexing/calling it as a widget errors. Prefer the new
+--- field; fall back to the old one only if it is actually a widget (a table).
+local function getQuitToDesktopWidget(self)
+    if self.quitToDesktopOption then return self.quitToDesktopOption end
+    if type(self.quitToDesktop) == "table" then return self.quitToDesktop end
+    return nil
+end
+
 --- Places our item below the lowest OTHER visible item in the bottom panel
 --- (native RETURN/OPTIONS/EXIT/QUIT plus any other mod's item, e.g. Server
 --- Shop's), and grows the panel to include us.
@@ -28,7 +40,8 @@ local function positionServerGuideItem(self)
     local mine = self.serverGuidesOption
     if not mine or not self.bottomPanel then return end
 
-    local maxBottom = self.quitToDesktop and self.quitToDesktop:getBottom() or 0
+    local quitBtn = getQuitToDesktopWidget(self)
+    local maxBottom = quitBtn and quitBtn:getBottom() or 0
     for _, child in pairs(self.bottomPanel:getChildren()) do
         if child ~= mine and child.getBottom and child:isVisible() then
             local b = child:getBottom()
@@ -68,13 +81,14 @@ function MainScreen:instantiate()
     if not self.inGame then return end
     if self.serverGuidesOption then return end
 
+    local quitBtn = getQuitToDesktopWidget(self)
     local labelHgt = getTextManager():getFontHeight(UIFont.Large) + 8 * 2
-    self.serverGuidesOption = ISLabel:new(self.quitToDesktop.x, self.quitToDesktop:getBottom() + 16,
+    self.serverGuidesOption = ISLabel:new(quitBtn.x, quitBtn:getBottom() + 16,
         labelHgt, getText("IGUI_ServerGuide_MenuButton"), 1, 1, 1, 1, UIFont.Large, true)
     self.serverGuidesOption.internal = "SERVER_GUIDE"
     self.serverGuidesOption:initialise()
     self.bottomPanel:addChild(self.serverGuidesOption)
-    self.serverGuidesOption:setWidth(self.quitToDesktop.width)
+    self.serverGuidesOption:setWidth(quitBtn.width)
 
     -- native menu-item look: hover fade + the shared label prerender
     self.serverGuidesOption.fade = UITransition.new()
