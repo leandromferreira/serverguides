@@ -1,0 +1,12 @@
+{
+    "Sandbox_ServerGuide": "Przewodnik po serwerze",
+
+    "Sandbox_ServerGuide_AutoOpen": "Automatycznie otwieraj przewodnik po dołączeniu",
+    "Sandbox_ServerGuide_AutoOpen_tooltip": "Jeśli ta opcja jest włączona, przewodnik otworzy się automatycznie po dołączeniu gracza do serwera. Gracze nadal mogą wyłączyć tę funkcję indywidualnie, jeśli pozwala na to opcja poniżej. Jeśli ta opcja jest wyłączona, przewodnik nie będzie otwierany automatycznie — gracze będą mogli otworzyć go wyłącznie z menu pauzy (Esc). Domyślnie: włączone",
+
+    "Sandbox_ServerGuide_AllowOptOut": "Pozwól graczom wyłączyć automatyczne otwieranie",
+    "Sandbox_ServerGuide_AllowOptOut_tooltip": "Jeśli ta opcja jest włączona, każdy gracz otrzyma pole wyboru pozwalające wyłączyć automatyczne otwieranie przewodnika. Jeśli jest wyłączona, pole wyboru będzie ukryte, a przewodnik będzie zawsze otwierany automatycznie po dołączeniu. Dotyczy tylko sytuacji, gdy automatyczne otwieranie powyżej jest włączone. Domyślnie: włączone",
+
+    "Sandbox_ServerGuide_EditAccessLevels": "Poziomy dostępu uprawnione do edycji",
+    "Sandbox_ServerGuide_EditAccessLevels_tooltip": "Poziomy dostępu, które mogą edytować przewodniki i ich menu bezpośrednio w grze, oddzielone znakiem \";\" (np. admin;moderator;overseer;gm). Pozostaw puste, aby nikomu nie przyznawać uprawnień. Host w trybie SP/co-op zawsze może edytować. Domyślnie: admin;moderator;overseer;gm"
+}
